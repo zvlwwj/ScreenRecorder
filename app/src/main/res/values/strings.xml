@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">ScreenRecorder</string>
+    <string name="request_permission">需要允许权限才能使用该功能</string>
+    <string name="version_too_low">需要Android5.0系统以上，才能使用该功能</string>
 </resources>

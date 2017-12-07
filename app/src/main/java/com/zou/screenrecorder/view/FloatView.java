@@ -28,6 +28,8 @@ public class FloatView extends FrameLayout {
     private WindowManager.LayoutParams mParams;
     private float initialTouchX,initialTouchY;
     private int initialX,initialY;
+    private OnSingleTapListener onSingleTapListener;
+    private boolean eable;
     public FloatView(Context context) {
         super(context);
         viewContext = context;
@@ -43,7 +45,10 @@ public class FloatView extends FrameLayout {
         iv_display.setImageResource(R.mipmap.icon_play);
         iv_display.setOnTouchListener(onTouchListener);
         mWindowManager = FloatingManager.getInstance(mContext);
+    }
 
+    public void setImageResource(int res){
+        iv_display.setImageResource(res);
     }
 
     public void show(){
@@ -80,7 +85,9 @@ public class FloatView extends FrameLayout {
 
         @Override
         public boolean onSingleTapUp(MotionEvent e) {
-            Toast.makeText(getContext(),"onSingleTapUp",Toast.LENGTH_SHORT).show();
+            if(onSingleTapListener != null ){
+                onSingleTapListener.onSingleTap();
+            }
             return true;
         }
 
@@ -122,4 +129,16 @@ public class FloatView extends FrameLayout {
             return true;
         }
     };
+
+    public void setOnSingleTapListener(OnSingleTapListener onSingleTapListener){
+        this.onSingleTapListener = onSingleTapListener;
+    }
+
+    public void eableClick(boolean eable){
+        this.eable = eable;
+    }
+
+    public interface OnSingleTapListener{
+        void onSingleTap();
+    }
 }
