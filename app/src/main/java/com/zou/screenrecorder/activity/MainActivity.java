@@ -47,7 +47,10 @@ public class MainActivity extends AppCompatActivity {
         initView();
         setListener();
         requestFloatViewPermission();
-        Intent intent = new Intent(this, RecordService.class);
+        /**
+         *  开启服务
+         */
+        Intent intent = new Intent(MainActivity.this, RecordService.class);
         bindService(intent, connection, BIND_AUTO_CREATE);
     }
 

@@ -104,7 +104,6 @@ public class RecordService extends Service {
         mediaRecorder.setVideoSource(MediaRecorder.VideoSource.SURFACE);
         mediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
         mediaRecorder.setOutputFile(getsaveDirectory() + System.currentTimeMillis() + ".mp4");
-        Log.i(TAG,"path : "+getsaveDirectory() + System.currentTimeMillis() + ".mp4");
         mediaRecorder.setVideoSize(width, height);
         mediaRecorder.setVideoEncoder(MediaRecorder.VideoEncoder.H264);
         mediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
