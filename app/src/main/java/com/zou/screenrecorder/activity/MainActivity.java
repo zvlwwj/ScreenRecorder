@@ -70,6 +70,8 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 showFloatWindow();
+                //将Activity切换到后台
+                moveTaskToBack(true);
             }
         });
         floatView.setOnSingleTapListener(new FloatView.OnSingleTapListener() {
@@ -172,6 +174,7 @@ public class MainActivity extends AppCompatActivity {
                     mediaProjection = projectionManager.getMediaProjection(resultCode, data);
                     recordService.setMediaProject(mediaProjection);
                     recordService.startRecord();
+                    floatView.setImageResource(R.mipmap.icon_stop);
                 }
                 break;
         }
