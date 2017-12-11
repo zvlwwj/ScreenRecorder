@@ -14,8 +14,13 @@ import android.os.IBinder;
 import android.provider.Settings;
 import android.support.annotation.RequiresApi;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.GridLayoutManager;
+import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.Toolbar;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.View;
@@ -26,8 +31,15 @@ import com.zhy.m.permission.MPermissions;
 import com.zhy.m.permission.PermissionDenied;
 import com.zhy.m.permission.PermissionGrant;
 import com.zou.screenrecorder.R;
+import com.zou.screenrecorder.adapter.RecordsRecyclerAdapter;
 import com.zou.screenrecorder.service.RecordService;
+import com.zou.screenrecorder.utils.Tools;
 import com.zou.screenrecorder.view.FloatView;
+
+import java.io.File;
+import java.lang.reflect.Array;
+import java.util.ArrayList;
+import java.util.Arrays;
 
 @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
 public class MainActivity extends AppCompatActivity {
@@ -39,6 +51,9 @@ public class MainActivity extends AppCompatActivity {
     private MediaProjectionManager projectionManager;
     private MediaProjection mediaProjection;
     private RecordService recordService;
+    private RecyclerView recycler_records;
+    private RecordsRecyclerAdapter adapter;
+    private ArrayList<String> recordUris;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -54,15 +69,41 @@ public class MainActivity extends AppCompatActivity {
         bindService(intent, connection, BIND_AUTO_CREATE);
     }
 
+
     private void initData() {
         projectionManager = (MediaProjectionManager) getSystemService(MEDIA_PROJECTION_SERVICE);
         context = getApplicationContext();
+        getRecordPaths();
     }
 
+    /**
+     * 获取录像路径
+     */
+    private void getRecordPaths(){
+        String directory = Tools.getSaveDirectory();
+        File file = new File(directory);
+        String[] strings = file.list();
+        recordUris = new ArrayList<String>(Arrays.asList(strings));
+    }
+
+    /**
+     * 界面初始化
+     */
     private void initView() {
-        btn_start = (Button) findViewById(R.id.btn_start);
+        btn_start = (Button) findViewById(R.id.button);
+        adapter = new RecordsRecyclerAdapter(recordUris,this);
         floatView = new FloatView(context);
         floatView.setEnabled(false);
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar_main);
+        setSupportActionBar(toolbar);
+        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.main_drawer_layout);
+        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+        drawer.addDrawerListener(toggle);
+        toggle.syncState();
+        recycler_records = (RecyclerView) findViewById(R.id.recycler_records);
+        GridLayoutManager mgr=new GridLayoutManager(this,2);
+        recycler_records.setLayoutManager(mgr);
+        recycler_records.setAdapter(adapter);
     }
 
     private void setListener() {

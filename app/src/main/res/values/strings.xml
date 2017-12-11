@@ -1,5 +1,11 @@
 <resources>
     <string name="app_name">ScreenRecorder</string>
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
     <string name="request_permission">需要允许权限才能使用该功能</string>
     <string name="version_too_low">需要Android5.0系统以上，才能使用该功能</string>
+    <string name="nav_settings">设置</string>
+    <string name="nav_about">关于</string>
+    <string name="nav_video_library">我的录制</string>
+    <string name="nav_donate">捐赠</string>
 </resources>
