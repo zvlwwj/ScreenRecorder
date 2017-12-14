@@ -36,6 +36,7 @@ import com.zou.screenrecorder.R;
 import com.zou.screenrecorder.adapter.RecordsRecyclerAdapter;
 import com.zou.screenrecorder.service.RecordService;
 import com.zou.screenrecorder.utils.Tools;
+import com.zou.screenrecorder.view.DividerGridItemDecoration;
 import com.zou.screenrecorder.view.FloatView;
 
 import java.io.File;
@@ -109,6 +110,7 @@ public class MainActivity extends AppCompatActivity {
         recycler_records = (RecyclerView) findViewById(R.id.recycler_records);
         GridLayoutManager mgr=new GridLayoutManager(this,2);
         recycler_records.setLayoutManager(mgr);
+        recycler_records.addItemDecoration(new DividerGridItemDecoration(this));
         recycler_records.setAdapter(adapter);
     }
 
