@@ -11,11 +11,13 @@ import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
 import com.zou.screenrecorder.R;
+import com.zou.screenrecorder.utils.Tools;
 
 import java.util.ArrayList;
 
 import static android.provider.MediaStore.Images.Thumbnails.MINI_KIND;
-
+import static android.provider.MediaStore.Video.Thumbnails.FULL_SCREEN_KIND;
+import static android.provider.MediaStore.Images.Thumbnails.MICRO_KIND;
 /**
  * Created by zou on 2017/12/11.
  */
@@ -36,10 +38,11 @@ public class RecordsRecyclerAdapter extends RecyclerView.Adapter<RecordsRecycler
 
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
-//        String recordUri = recordUris.get(position);
-//        Bitmap bm = ThumbnailUtils.createVideoThumbnail(recordUri, MINI_KIND);
-//        holder.iv_item_records.setImageBitmap(bm);
-
+        String recordUri = recordUris.get(position);
+        Bitmap bm = ThumbnailUtils.createVideoThumbnail(recordUri,FULL_SCREEN_KIND);
+        bm = ThumbnailUtils.extractThumbnail(bm, Tools.getScreenWidth(context)/2, Tools.getScreenHeight(context)/2);
+        holder.iv_item_records.setImageBitmap(bm);
+//        holder.tv_item_duration.setText();
     }
 
     @Override

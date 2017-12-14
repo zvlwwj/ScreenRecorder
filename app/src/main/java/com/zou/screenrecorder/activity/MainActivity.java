@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.media.projection.MediaProjection;
 import android.media.projection.MediaProjectionManager;
 import android.net.Uri;
@@ -19,6 +20,7 @@ import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.GridLayoutManager;
+import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.util.DisplayMetrics;
@@ -82,8 +84,12 @@ public class MainActivity extends AppCompatActivity {
     private void getRecordPaths(){
         String directory = Tools.getSaveDirectory();
         File file = new File(directory);
-        String[] strings = file.list();
-        recordUris = new ArrayList<String>(Arrays.asList(strings));
+        for(String string : file.list()){
+            if(recordUris == null){
+                recordUris = new ArrayList<String>();
+            }
+            recordUris.add(directory+string);
+        }
     }
 
     /**
@@ -91,7 +97,6 @@ public class MainActivity extends AppCompatActivity {
      */
     private void initView() {
         btn_start = (Button) findViewById(R.id.button);
-        adapter = new RecordsRecyclerAdapter(recordUris,this);
         floatView = new FloatView(context);
         floatView.setEnabled(false);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar_main);
@@ -100,6 +105,7 @@ public class MainActivity extends AppCompatActivity {
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
         drawer.addDrawerListener(toggle);
         toggle.syncState();
+        adapter = new RecordsRecyclerAdapter(recordUris,this);
         recycler_records = (RecyclerView) findViewById(R.id.recycler_records);
         GridLayoutManager mgr=new GridLayoutManager(this,2);
         recycler_records.setLayoutManager(mgr);
