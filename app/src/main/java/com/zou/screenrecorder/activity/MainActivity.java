@@ -35,8 +35,8 @@ import com.zhy.m.permission.PermissionGrant;
 import com.zou.screenrecorder.R;
 import com.zou.screenrecorder.adapter.RecordsRecyclerAdapter;
 import com.zou.screenrecorder.service.RecordService;
+import com.zou.screenrecorder.utils.Constant;
 import com.zou.screenrecorder.utils.Tools;
-import com.zou.screenrecorder.view.DividerGridItemDecoration;
 import com.zou.screenrecorder.view.FloatView;
 
 import java.io.File;
@@ -110,7 +110,7 @@ public class MainActivity extends AppCompatActivity {
         recycler_records = (RecyclerView) findViewById(R.id.recycler_records);
         GridLayoutManager mgr=new GridLayoutManager(this,2);
         recycler_records.setLayoutManager(mgr);
-        recycler_records.addItemDecoration(new DividerGridItemDecoration(this));
+//        recycler_records.addItemDecoration(new DividerGridItemDecoration(this));
         recycler_records.setAdapter(adapter);
     }
 
@@ -138,6 +138,19 @@ public class MainActivity extends AppCompatActivity {
                         requestRecordPermission();
                     }
                 }
+            }
+        });
+        adapter.setOnItemClickLitener(new RecordsRecyclerAdapter.OnItemClickLitener() {
+            @Override
+            public void onItemClick(View view, int position) {
+                Intent intent = new Intent(MainActivity.this,RecordActivity.class);
+                intent.putExtra(Constant.INTENT_RECORD_URI,recordUris.get(position));
+                startActivity(intent);
+            }
+
+            @Override
+            public void onItemLongClick(View view, int position) {
+
             }
         });
     }

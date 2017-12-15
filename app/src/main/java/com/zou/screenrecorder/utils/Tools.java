@@ -52,4 +52,19 @@ public class Tools {
         return dm.heightPixels;
     }
 
+    /**
+     * 将毫秒转换成时间的形式
+     * @param duration 毫秒
+     * @return
+     */
+    public static String durationToText(int duration){
+        int absSeconds = duration/1000;
+        String positive = String.format(
+                "%d:%02d:%02d",
+                absSeconds / 3600,
+                (absSeconds % 3600) / 60,
+                absSeconds % 60);
+        return  positive;
+    }
+
 }

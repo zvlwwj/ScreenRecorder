@@ -26,6 +26,7 @@
                 <action android:name="android.accessibilityservice.AccessibilityService" />
             </intent-filter>
         </service>
+        <activity android:name=".activity.RecordActivity"/>
     </application>
 
 </manifest>
