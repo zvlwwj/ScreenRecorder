@@ -22,12 +22,14 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v7.app.ActionBar;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.View;
-import android.widget.MediaController;
+import android.view.ViewGroup;
 
 import java.util.ArrayList;
 
-public class AndroidMediaController extends MediaController implements IMediaController {
+public class AndroidMediaController extends CustomMediaController implements IMediaController {
+    private static final String TAG = "AndroidMediaController";
     private ActionBar mActionBar;
 
     public AndroidMediaController(Context context, AttributeSet attrs) {
@@ -72,6 +74,11 @@ public class AndroidMediaController extends MediaController implements IMediaCon
         for (View view : mShowOnceArray)
             view.setVisibility(View.GONE);
         mShowOnceArray.clear();
+    }
+
+    @Override
+    public void setAnchorView(View view) {
+        super.setAnchorView((ViewGroup) view);
     }
 
     //----------

@@ -35,7 +35,6 @@ import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.FrameLayout;
-import android.widget.MediaController;
 import android.widget.TableLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -63,7 +62,7 @@ import tv.danmaku.ijk.media.player.misc.IMediaFormat;
 import tv.danmaku.ijk.media.player.misc.ITrackInfo;
 import tv.danmaku.ijk.media.player.misc.IjkMediaFormat;
 
-public class IjkVideoView extends FrameLayout implements MediaController.MediaPlayerControl {
+public class IjkVideoView extends FrameLayout implements CustomMediaController.MediaPlayerControl {
     private String TAG = "IjkVideoView";
     // settable by the client
     private Uri mUri;
@@ -891,9 +890,19 @@ public class IjkVideoView extends FrameLayout implements MediaController.MediaPl
     }
 
     @Override
-    public int getAudioSessionId() {
-        return 0;
+    public boolean isFullScreen() {
+        return false;
     }
+
+    @Override
+    public void toggleFullScreen() {
+
+    }
+
+//    @Override
+//    public int getAudioSessionId() {
+//        return 0;
+//    }
 
     // REMOVED: getAudioSessionId();
     // REMOVED: onAttachedToWindow();
