@@ -1,11 +1,18 @@
 package com.zou.screenrecorder.utils;
 
 import android.content.Context;
+import android.database.Cursor;
+import android.graphics.Bitmap;
 import android.os.Environment;
+import android.provider.MediaStore;
 import android.util.DisplayMetrics;
 import android.widget.Toast;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by zou on 2017/12/11.
@@ -65,6 +72,23 @@ public class Tools {
                 (absSeconds % 3600) / 60,
                 absSeconds % 60);
         return  positive;
+    }
+
+    /**
+     * 图片对象转换成byte[]
+     * @param bitmap
+     * @return
+     */
+    public static byte[] Bitmap2ByteArray(Bitmap bitmap){
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        bitmap.compress(Bitmap.CompressFormat.PNG,100,baos);
+        byte[] bytes = baos.toByteArray();
+        try {
+            baos.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return bytes;
     }
 
 }

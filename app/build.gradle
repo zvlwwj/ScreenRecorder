@@ -50,6 +50,8 @@ dependencies {
     compile 'tv.danmaku.ijk.media:ijkplayer-exo:0.8.3'
     all32Compile 'tv.danmaku.ijk.media:ijkplayer-armv7a:0.8.3'
     all64Compile 'tv.danmaku.ijk.media:ijkplayer-armv7a:0.8.3'
+    //EventBus
+    compile 'org.greenrobot:eventbus:3.0.0'
     compile 'com.android.support:preference-v7:25.0.1'
     testCompile 'junit:junit:4.12'
 }

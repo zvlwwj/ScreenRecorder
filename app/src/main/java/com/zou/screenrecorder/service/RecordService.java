@@ -2,8 +2,11 @@ package com.zou.screenrecorder.service;
 
 import android.app.Service;
 import android.content.Intent;
+import android.graphics.Bitmap;
 import android.hardware.display.DisplayManager;
 import android.hardware.display.VirtualDisplay;
+import android.media.Image;
+import android.media.ImageReader;
 import android.media.MediaRecorder;
 import android.media.projection.MediaProjection;
 import android.os.Binder;
@@ -12,23 +15,26 @@ import android.os.Environment;
 import android.os.HandlerThread;
 import android.os.IBinder;
 import android.support.annotation.RequiresApi;
-import android.util.Log;
 import android.widget.Toast;
+
+import com.zou.screenrecorder.utils.Tools;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.ByteBuffer;
 
 @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
 public class RecordService extends Service {
     private static final String TAG = "RecordService";
     private MediaProjection mediaProjection;
     private MediaRecorder mediaRecorder;
-    private VirtualDisplay virtualDisplay;
+    private VirtualDisplay recordVirtualDisplay,captureVirtualDisplay;
 
     private boolean running;
     private int width = 720;
     private int height = 1080;
     private int dpi;
+    private ImageReader mImageReader;
 
 
     @Override
@@ -77,8 +83,35 @@ public class RecordService extends Service {
         initRecorder();
         createVirtualDisplay();
         mediaRecorder.start();
+        captureScreen();
         running = true;
         return true;
+    }
+
+    /**
+     * 截屏
+     */
+    private void captureScreen() {
+//        strDate = dateFormat.format(new java.util.Date());
+//        nameImage = pathImage+strDate+".png";
+
+        Image image = mImageReader.acquireLatestImage();
+        int width = image.getWidth();
+        int height = image.getHeight();
+        final Image.Plane[] planes = image.getPlanes();
+        final ByteBuffer buffer = planes[0].getBuffer();
+        int pixelStride = planes[0].getPixelStride();
+        int rowStride = planes[0].getRowStride();
+        int rowPadding = rowStride - pixelStride * width;
+        Bitmap bitmap = Bitmap.createBitmap(width+rowPadding/pixelStride, height, Bitmap.Config.ARGB_8888);
+        bitmap.copyPixelsFromBuffer(buffer);
+        bitmap = Bitmap.createBitmap(bitmap, 0, 0,width, height);
+        image.close();
+        if (captureVirtualDisplay == null) {
+            return;
+        }
+        captureVirtualDisplay.release();
+        captureVirtualDisplay = null;
     }
 
 
@@ -89,21 +122,24 @@ public class RecordService extends Service {
         running = false;
         mediaRecorder.stop();
         mediaRecorder.reset();
-        virtualDisplay.release();
+        recordVirtualDisplay.release();
         mediaProjection.stop();
         return true;
     }
 
     private void createVirtualDisplay() {
-        virtualDisplay = mediaProjection.createVirtualDisplay("MainScreen", width, height, dpi,
+        mImageReader = ImageReader.newInstance(Tools.getScreenWidth(getApplicationContext()), Tools.getScreenHeight(getApplicationContext()), 0x1, 2);
+        recordVirtualDisplay = mediaProjection.createVirtualDisplay("MainScreen", width, height, dpi,
                 DisplayManager.VIRTUAL_DISPLAY_FLAG_AUTO_MIRROR, mediaRecorder.getSurface(), null, null);
+        captureVirtualDisplay = mediaProjection.createVirtualDisplay("MainScreen", width, height, dpi,
+                DisplayManager.VIRTUAL_DISPLAY_FLAG_AUTO_MIRROR, mImageReader.getSurface(), null, null);
     }
 
     private void initRecorder() {
         mediaRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
         mediaRecorder.setVideoSource(MediaRecorder.VideoSource.SURFACE);
         mediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
-        mediaRecorder.setOutputFile(getsaveDirectory() + System.currentTimeMillis() + ".mp4");
+        mediaRecorder.setOutputFile(getSaveDirectory() + System.currentTimeMillis() + ".mp4");
         mediaRecorder.setVideoSize(width, height);
         mediaRecorder.setVideoEncoder(MediaRecorder.VideoEncoder.H264);
         mediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
@@ -116,7 +152,7 @@ public class RecordService extends Service {
         }
     }
 
-    public String getsaveDirectory() {
+    public String getSaveDirectory() {
         if (Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
             String rootDir = Environment.getExternalStorageDirectory().getAbsolutePath() + "/" + "ScreenRecord" + "/";
 

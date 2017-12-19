@@ -76,6 +76,7 @@ public class MainActivity extends AppCompatActivity {
     private void initData() {
         projectionManager = (MediaProjectionManager) getSystemService(MEDIA_PROJECTION_SERVICE);
         context = getApplicationContext();
+        recordUris = new ArrayList<String>();
         getRecordPaths();
     }
 
@@ -85,11 +86,10 @@ public class MainActivity extends AppCompatActivity {
     private void getRecordPaths(){
         String directory = Tools.getSaveDirectory();
         File file = new File(directory);
-        for(String string : file.list()){
-            if(recordUris == null){
-                recordUris = new ArrayList<String>();
+        if(file.list()!=null&&file.list().length>0) {
+            for (String string : file.list()) {
+                recordUris.add(directory + string);
             }
-            recordUris.add(directory+string);
         }
     }
 

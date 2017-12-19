@@ -17,6 +17,7 @@ import com.zou.screenrecorder.R;
 import com.zou.screenrecorder.bean.RecordBean;
 import com.zou.screenrecorder.utils.Tools;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 
@@ -37,6 +38,9 @@ public class RecordsRecyclerAdapter extends RecyclerView.Adapter<RecordsRecycler
     private ArrayList<String> recordUris;
     private Context context;
     private OnItemClickLitener mOnItemClickLitener;
+    private static final int MODE_NORMAl = 0;//普通模式
+    private static final int MODE_EDIT = 1;//编辑模式
+    private int mode = MODE_NORMAl;
     public RecordsRecyclerAdapter(ArrayList<String> recordUris,Context context){
         this.recordUris = recordUris;
         this.context = context;
@@ -63,7 +67,10 @@ public class RecordsRecyclerAdapter extends RecyclerView.Adapter<RecordsRecycler
             holder.iv_item_records.setOnLongClickListener(new View.OnLongClickListener() {
                 @Override
                 public boolean onLongClick(View v) {
+                    //TODO 进入编辑模式
                     mOnItemClickLitener.onItemLongClick(holder.iv_item_records,position);
+                    mode = MODE_EDIT;
+                    notifyDataSetChanged();
                     return true;
                 }
             });
@@ -76,6 +83,9 @@ public class RecordsRecyclerAdapter extends RecyclerView.Adapter<RecordsRecycler
     private void handleView(final ViewHolder holder, String recordUri) {
         //TODO 更换loading图！
         holder.iv_item_records.setImageResource(R.mipmap.bg_load);
+        if(mode == MODE_EDIT) {
+            holder.iv_item_check.setVisibility(View.VISIBLE);
+        }
         Observable.just(recordUri)
                 .subscribeOn(Schedulers.io())//订阅操作在io线程中
                 .observeOn(AndroidSchedulers.mainThread())//回调在主线程中
@@ -102,7 +112,8 @@ public class RecordsRecyclerAdapter extends RecyclerView.Adapter<RecordsRecycler
                 }).subscribe(new Action1<RecordBean>() {
             @Override
             public void call(RecordBean recordBean) {
-                holder.iv_item_records.setImageBitmap(recordBean.getBm());
+                Glide.with(context).load(Tools.Bitmap2ByteArray(recordBean.getBm())).into(holder.iv_item_records);
+//                holder.iv_item_records.setImageBitmap();
                 holder.tv_item_duration.setText(recordBean.getDuration());
             }
         }, new Action1<Throwable>() {

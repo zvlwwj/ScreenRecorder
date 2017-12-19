@@ -25,12 +25,23 @@ import android.util.AttributeSet;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.ImageView;
+
+import com.zou.screenrecorder.activity.RecordActivity;
+import com.zou.screenrecorder.bean.MessageEvent;
+
+import org.greenrobot.eventbus.EventBus;
 
 import java.util.ArrayList;
+
 
 public class AndroidMediaController extends CustomMediaController implements IMediaController {
     private static final String TAG = "AndroidMediaController";
     private ActionBar mActionBar;
+    private View addtionView;
+
+
 
     public AndroidMediaController(Context context, AttributeSet attrs) {
         super(context, attrs);
@@ -64,6 +75,11 @@ public class AndroidMediaController extends CustomMediaController implements IMe
         super.show();
         if (mActionBar != null)
             mActionBar.show();
+        if(addtionView!=null){
+            addtionView.setVisibility(VISIBLE);
+        }
+        Log.i(TAG,"show");
+        EventBus.getDefault().post(new MessageEvent(null,RecordActivity.EVENT_BUS_CONTROLLER_SHOW));
     }
 
     @Override
@@ -74,11 +90,18 @@ public class AndroidMediaController extends CustomMediaController implements IMe
         for (View view : mShowOnceArray)
             view.setVisibility(View.GONE);
         mShowOnceArray.clear();
+        if(addtionView!=null){
+            addtionView.setVisibility(GONE);
+        }
     }
 
     @Override
     public void setAnchorView(View view) {
         super.setAnchorView((ViewGroup) view);
+    }
+
+    public void setAddtionView(View view){
+        addtionView = view;
     }
 
     //----------

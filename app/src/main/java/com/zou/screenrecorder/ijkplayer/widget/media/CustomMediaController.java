@@ -132,6 +132,10 @@ public class CustomMediaController extends FrameLayout {
         updateFullScreen();
     }
 
+    public MediaPlayerControl getMediaPlayer(){
+        return mPlayer;
+    }
+
     /**
      * Set the view that acts as the anchor for the control view.
      * This can for example be a VideoView, or your Activity's main view.
@@ -170,12 +174,17 @@ public class CustomMediaController extends FrameLayout {
         if (mPauseButton != null) {
             mPauseButton.requestFocus();
             mPauseButton.setOnClickListener(mPauseListener);
+            //这里暂时隐藏了
+            if (!mFromXml) {
+                mPauseButton.setVisibility(mUseFastForward ? View.VISIBLE : View.GONE);
+            }
         }
 
         mFullscreenButton = (ImageButton) v.findViewById(R.id.fullscreen);
         if (mFullscreenButton != null) {
             mFullscreenButton.requestFocus();
             mFullscreenButton.setOnClickListener(mFullscreenListener);
+            //这里暂时隐藏了
             if (!mFromXml) {
                 mFullscreenButton.setVisibility(mUseFastForward ? View.VISIBLE : View.GONE);
             }

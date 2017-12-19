@@ -5,17 +5,23 @@
     android:layout_height="match_parent"
     xmlns:tools="http://schemas.android.com/tools"
     >
-    <com.zou.screenrecorder.ijkplayer.widget.media.IjkVideoView
-        android:id="@+id/video_view"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_gravity="center" />
     <TableLayout
         android:id="@+id/hud_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:background="#77000000"
         android:padding="8dp" />
+    <com.zou.screenrecorder.ijkplayer.widget.media.IjkVideoView
+        android:id="@+id/video_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_gravity="center" />
+    <ImageView android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:src="@mipmap/ic_pause"
+        android:id="@+id/iv_play"
+        android:visibility="gone"/>
     <android.support.v7.widget.Toolbar
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
