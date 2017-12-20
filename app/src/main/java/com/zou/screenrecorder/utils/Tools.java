@@ -23,7 +23,7 @@ public class Tools {
      * 获取存储录像的路径
      * @return
      */
-    public static String getSaveDirectory(){
+    public static String getSaveRecordDirectory(){
         if (Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
             String rootDir = Environment.getExternalStorageDirectory().getAbsolutePath() + "/" + "ScreenRecord" + "/";
 
@@ -37,6 +37,21 @@ public class Tools {
         } else {
             return null;
         }
+    }
+
+    /**
+     * 获取存储图像的路径
+     * @return
+     */
+    public static String getSaveImageDirectory(Context context){
+        String path = context.getExternalCacheDir()+"/"+"Images"+"/";
+        File f = new File(path);
+        if(!f.exists()) {
+            if (!f.mkdirs()) {
+                return null;
+            }
+        }
+        return path;
     }
 
     /**

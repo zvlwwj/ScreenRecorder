@@ -1,8 +1,10 @@
 package com.zou.screenrecorder.service;
 
 import android.app.Service;
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.graphics.PixelFormat;
 import android.hardware.display.DisplayManager;
 import android.hardware.display.VirtualDisplay;
 import android.media.Image;
@@ -14,14 +16,19 @@ import android.os.Build;
 import android.os.Environment;
 import android.os.HandlerThread;
 import android.os.IBinder;
+import android.os.SystemClock;
 import android.support.annotation.RequiresApi;
+import android.util.Log;
 import android.widget.Toast;
 
 import com.zou.screenrecorder.utils.Tools;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 
 @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
 public class RecordService extends Service {
@@ -35,6 +42,8 @@ public class RecordService extends Service {
     private int height = 1080;
     private int dpi;
     private ImageReader mImageReader;
+    //这里截屏图片和录像共用一个文件名（不包含后缀），但是在不同的文件夹中
+    private String fileName;
 
 
     @Override
@@ -88,13 +97,59 @@ public class RecordService extends Service {
         return true;
     }
 
+
+
+
+    public boolean stopRecord() {
+        if (!running) {
+            return false;
+        }
+        running = false;
+        mediaRecorder.stop();
+        mediaRecorder.reset();
+        recordVirtualDisplay.release();
+        mediaProjection.stop();
+        return true;
+    }
+
+    private void createVirtualDisplay() {
+        mImageReader = ImageReader.newInstance(width, height, PixelFormat.RGBA_8888, 1);
+        if(mImageReader!=null){
+            Log.i(TAG, "imageReader Successful");
+        }
+        recordVirtualDisplay = mediaProjection.createVirtualDisplay("MainScreen", width, height, dpi,
+                DisplayManager.VIRTUAL_DISPLAY_FLAG_AUTO_MIRROR, mediaRecorder.getSurface(), null, null);
+        captureVirtualDisplay = mediaProjection.createVirtualDisplay("MainScreen", width, height, dpi,
+                DisplayManager.VIRTUAL_DISPLAY_FLAG_AUTO_MIRROR, mImageReader.getSurface(), null, null);
+    }
+
+    private void initRecorder() {
+        DateFormat dateFormat = new SimpleDateFormat("MMddyyyyHHmmss");
+        fileName = dateFormat.format(new java.util.Date());
+        mediaRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
+        mediaRecorder.setVideoSource(MediaRecorder.VideoSource.SURFACE);
+        mediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
+        mediaRecorder.setOutputFile(getSaveRecordDirectory() + fileName + ".mp4");
+        mediaRecorder.setVideoSize(width, height);
+        mediaRecorder.setVideoEncoder(MediaRecorder.VideoEncoder.H264);
+        mediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
+        mediaRecorder.setVideoEncodingBitRate(24 * 1024 * 1024);
+        mediaRecorder.setVideoFrameRate(30);
+        try {
+            mediaRecorder.prepare();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
     /**
      * 截屏
      */
     private void captureScreen() {
-//        strDate = dateFormat.format(new java.util.Date());
-//        nameImage = pathImage+strDate+".png";
+        String pathImage = getSaveImageDirectory(getApplicationContext());
 
+        String nameImage = pathImage+fileName+".png";
+        SystemClock.sleep(1000);
         Image image = mImageReader.acquireLatestImage();
         int width = image.getWidth();
         int height = image.getHeight();
@@ -112,47 +167,29 @@ public class RecordService extends Service {
         }
         captureVirtualDisplay.release();
         captureVirtualDisplay = null;
+        storeBitmap(nameImage,bitmap);
     }
 
-
-    public boolean stopRecord() {
-        if (!running) {
-            return false;
-        }
-        running = false;
-        mediaRecorder.stop();
-        mediaRecorder.reset();
-        recordVirtualDisplay.release();
-        mediaProjection.stop();
-        return true;
-    }
-
-    private void createVirtualDisplay() {
-        mImageReader = ImageReader.newInstance(Tools.getScreenWidth(getApplicationContext()), Tools.getScreenHeight(getApplicationContext()), 0x1, 2);
-        recordVirtualDisplay = mediaProjection.createVirtualDisplay("MainScreen", width, height, dpi,
-                DisplayManager.VIRTUAL_DISPLAY_FLAG_AUTO_MIRROR, mediaRecorder.getSurface(), null, null);
-        captureVirtualDisplay = mediaProjection.createVirtualDisplay("MainScreen", width, height, dpi,
-                DisplayManager.VIRTUAL_DISPLAY_FLAG_AUTO_MIRROR, mImageReader.getSurface(), null, null);
-    }
-
-    private void initRecorder() {
-        mediaRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
-        mediaRecorder.setVideoSource(MediaRecorder.VideoSource.SURFACE);
-        mediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
-        mediaRecorder.setOutputFile(getSaveDirectory() + System.currentTimeMillis() + ".mp4");
-        mediaRecorder.setVideoSize(width, height);
-        mediaRecorder.setVideoEncoder(MediaRecorder.VideoEncoder.H264);
-        mediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
-        mediaRecorder.setVideoEncodingBitRate(5 * 1024 * 1024);
-        mediaRecorder.setVideoFrameRate(30);
+    /**
+     * 储存bitmap到CacheDir中
+     */
+    private void storeBitmap(String path,Bitmap bitmap) {
         try {
-            mediaRecorder.prepare();
+            File file = new File(path);
+            FileOutputStream out = new FileOutputStream(file);
+            bitmap.compress(Bitmap.CompressFormat.JPEG,100,out);
+            out.flush();
+            out.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
-    public String getSaveDirectory() {
+    /**
+     * 获取录像路径的文件夹
+     * @return
+     */
+    public String getSaveRecordDirectory() {
         if (Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
             String rootDir = Environment.getExternalStorageDirectory().getAbsolutePath() + "/" + "ScreenRecord" + "/";
 
@@ -169,6 +206,20 @@ public class RecordService extends Service {
         } else {
             return null;
         }
+    }
+    /**
+     * 获取图像路径的文件夹
+     * @return
+     */
+    public String getSaveImageDirectory(Context context){
+        String path = context.getExternalCacheDir()+"/"+"Images"+"/";
+        File f = new File(path);
+        if(!f.exists()) {
+            if (!f.mkdirs()) {
+                return null;
+            }
+        }
+        return path;
     }
 
     public class RecordBinder extends Binder {

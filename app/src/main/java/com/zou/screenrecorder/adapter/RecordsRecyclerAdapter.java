@@ -7,6 +7,7 @@ import android.media.ThumbnailUtils;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -15,6 +16,7 @@ import android.widget.VideoView;
 import com.bumptech.glide.Glide;
 import com.zou.screenrecorder.R;
 import com.zou.screenrecorder.bean.RecordBean;
+import com.zou.screenrecorder.bean.RecordSourceBean;
 import com.zou.screenrecorder.utils.Tools;
 
 import java.io.ByteArrayOutputStream;
@@ -34,15 +36,16 @@ import static android.provider.MediaStore.Images.Thumbnails.MICRO_KIND;
  * Created by zou on 2017/12/11.
  */
 
+//TODO 要考虑到图片获取不到的情况（应用缓存文件被删）
 public class RecordsRecyclerAdapter extends RecyclerView.Adapter<RecordsRecyclerAdapter.ViewHolder> {
-    private ArrayList<String> recordUris;
+    private ArrayList<RecordSourceBean> recordSourceBeans;
     private Context context;
     private OnItemClickLitener mOnItemClickLitener;
     private static final int MODE_NORMAl = 0;//普通模式
     private static final int MODE_EDIT = 1;//编辑模式
     private int mode = MODE_NORMAl;
-    public RecordsRecyclerAdapter(ArrayList<String> recordUris,Context context){
-        this.recordUris = recordUris;
+    public RecordsRecyclerAdapter(ArrayList<RecordSourceBean> recordSourceBeans,Context context){
+        this.recordSourceBeans = recordSourceBeans;
         this.context = context;
     }
     @Override
@@ -54,8 +57,8 @@ public class RecordsRecyclerAdapter extends RecyclerView.Adapter<RecordsRecycler
 
     @Override
     public void onBindViewHolder(final ViewHolder holder, final int position) {
-        String recordUri = recordUris.get(position);
-        handleView(holder,recordUri);
+        RecordSourceBean recordSourceBean = recordSourceBeans.get(position);
+        handleView(holder,recordSourceBean);
         //添加事件监听
         if(mOnItemClickLitener!=null){
             holder.iv_item_records.setOnClickListener(new View.OnClickListener() {
@@ -68,9 +71,10 @@ public class RecordsRecyclerAdapter extends RecyclerView.Adapter<RecordsRecycler
                 @Override
                 public boolean onLongClick(View v) {
                     //TODO 进入编辑模式
+                    holder.iv_item_records.animate().rotation(90).setDuration(1000).start();
                     mOnItemClickLitener.onItemLongClick(holder.iv_item_records,position);
                     mode = MODE_EDIT;
-                    notifyDataSetChanged();
+//                    notifyDataSetChanged();
                     return true;
                 }
             });
@@ -80,41 +84,42 @@ public class RecordsRecyclerAdapter extends RecyclerView.Adapter<RecordsRecycler
     /**
      *处理ViewHolder
      */
-    private void handleView(final ViewHolder holder, String recordUri) {
+    private void handleView(final ViewHolder holder, RecordSourceBean recordSourceBean) {
         //TODO 更换loading图！
         holder.iv_item_records.setImageResource(R.mipmap.bg_load);
         if(mode == MODE_EDIT) {
             holder.iv_item_check.setVisibility(View.VISIBLE);
         }
-        Observable.just(recordUri)
+        holder.iv_item_records.setLayoutParams(new FrameLayout.LayoutParams(Tools.getScreenWidth(context)/2,Tools.getScreenHeight(context)/2));
+        Glide.with(context).load(recordSourceBean.getImageFilePath()).into(holder.iv_item_records);
+        Observable.just(recordSourceBean)
                 .subscribeOn(Schedulers.io())//订阅操作在io线程中
                 .observeOn(AndroidSchedulers.mainThread())//回调在主线程中
-                .map(new Func1<String, RecordBean>() {
+                .map(new Func1<RecordSourceBean, String>() {
                     @Override
-                    public RecordBean call(String s) {
+                    public String call(RecordSourceBean recordSourceBean) {
                         //获取录像的缩略图
-                        RecordBean recordBean= new RecordBean();
-                        Bitmap bm = ThumbnailUtils.createVideoThumbnail(s,FULL_SCREEN_KIND);
-                        bm = ThumbnailUtils.extractThumbnail(bm, Tools.getScreenWidth(context)/2, Tools.getScreenHeight(context)/2);
-                        recordBean.setBm(bm);
+//                        RecordBean recordBean= new RecordBean();
+//                        Bitmap bm = ThumbnailUtils.createVideoThumbnail(s,FULL_SCREEN_KIND);
+//                        bm = ThumbnailUtils.extractThumbnail(bm, Tools.getScreenWidth(context)/2, Tools.getScreenHeight(context)/2);
+//                        recordBean.setBm(bm);
                         //获取录像的时长
                         MediaPlayer mediaPlayer = new MediaPlayer();
                         try {
-                            mediaPlayer.setDataSource(s);
+                            mediaPlayer.setDataSource(recordSourceBean.getRecordFilePath());
                             mediaPlayer.prepare();
                         } catch (IOException e) {
                             e.printStackTrace();
                         }
                         String duartion = Tools.durationToText(mediaPlayer.getDuration());
-                        recordBean.setDuration(duartion);
-                        return recordBean;
+                        return duartion;
                     }
-                }).subscribe(new Action1<RecordBean>() {
+                }).subscribe(new Action1<String>() {
             @Override
-            public void call(RecordBean recordBean) {
-                Glide.with(context).load(Tools.Bitmap2ByteArray(recordBean.getBm())).into(holder.iv_item_records);
+            public void call(String duartion) {
+
 //                holder.iv_item_records.setImageBitmap();
-                holder.tv_item_duration.setText(recordBean.getDuration());
+                holder.tv_item_duration.setText(duartion);
             }
         }, new Action1<Throwable>() {
             @Override
@@ -127,7 +132,7 @@ public class RecordsRecyclerAdapter extends RecyclerView.Adapter<RecordsRecycler
 
     @Override
     public int getItemCount() {
-        return recordUris.size();
+        return recordSourceBeans.size();
     }
 
 

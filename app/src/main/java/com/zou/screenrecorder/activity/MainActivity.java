@@ -34,6 +34,7 @@ import com.zhy.m.permission.PermissionDenied;
 import com.zhy.m.permission.PermissionGrant;
 import com.zou.screenrecorder.R;
 import com.zou.screenrecorder.adapter.RecordsRecyclerAdapter;
+import com.zou.screenrecorder.bean.RecordSourceBean;
 import com.zou.screenrecorder.service.RecordService;
 import com.zou.screenrecorder.utils.Constant;
 import com.zou.screenrecorder.utils.Tools;
@@ -56,7 +57,7 @@ public class MainActivity extends AppCompatActivity {
     private RecordService recordService;
     private RecyclerView recycler_records;
     private RecordsRecyclerAdapter adapter;
-    private ArrayList<String> recordUris;
+    private ArrayList<RecordSourceBean> recordSourceBeans;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -76,19 +77,22 @@ public class MainActivity extends AppCompatActivity {
     private void initData() {
         projectionManager = (MediaProjectionManager) getSystemService(MEDIA_PROJECTION_SERVICE);
         context = getApplicationContext();
-        recordUris = new ArrayList<String>();
-        getRecordPaths();
+        recordSourceBeans = new ArrayList<RecordSourceBean>();
+        getRecordSourceBeans();
     }
 
     /**
-     * 获取录像路径
+     * 获取录像和图片路径
      */
-    private void getRecordPaths(){
-        String directory = Tools.getSaveDirectory();
-        File file = new File(directory);
+    private void getRecordSourceBeans(){
+        String recordDirectory = Tools.getSaveRecordDirectory();
+        String imageDirectory = Tools.getSaveImageDirectory(getApplicationContext());
+        File file = new File(recordDirectory);
         if(file.list()!=null&&file.list().length>0) {
             for (String string : file.list()) {
-                recordUris.add(directory + string);
+                String recordPath = recordDirectory+string;
+                String imagePath = imageDirectory+string.replace(".mp4",".png");
+                recordSourceBeans.add(new RecordSourceBean(recordPath,imagePath));
             }
         }
     }
@@ -106,7 +110,7 @@ public class MainActivity extends AppCompatActivity {
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
         drawer.addDrawerListener(toggle);
         toggle.syncState();
-        adapter = new RecordsRecyclerAdapter(recordUris,this);
+        adapter = new RecordsRecyclerAdapter(recordSourceBeans,this);
         recycler_records = (RecyclerView) findViewById(R.id.recycler_records);
         GridLayoutManager mgr=new GridLayoutManager(this,2);
         recycler_records.setLayoutManager(mgr);
@@ -144,7 +148,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onItemClick(View view, int position) {
                 Intent intent = new Intent(MainActivity.this,RecordActivity.class);
-                intent.putExtra(Constant.INTENT_RECORD_URI,recordUris.get(position));
+                intent.putExtra(Constant.INTENT_RECORD_URI,recordSourceBeans.get(position).getRecordFilePath());
                 startActivity(intent);
             }
 
