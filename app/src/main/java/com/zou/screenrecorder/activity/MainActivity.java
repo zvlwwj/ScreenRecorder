@@ -5,8 +5,6 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
-import android.content.pm.PackageManager;
-import android.graphics.Color;
 import android.media.projection.MediaProjection;
 import android.media.projection.MediaProjectionManager;
 import android.net.Uri;
@@ -14,17 +12,18 @@ import android.os.Build;
 import android.os.IBinder;
 import android.provider.Settings;
 import android.support.annotation.RequiresApi;
-import android.support.v4.content.ContextCompat;
 import android.support.v4.widget.DrawerLayout;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.GridLayoutManager;
-import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.util.DisplayMetrics;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
@@ -39,16 +38,15 @@ import com.zou.screenrecorder.service.RecordService;
 import com.zou.screenrecorder.utils.Constant;
 import com.zou.screenrecorder.utils.Tools;
 import com.zou.screenrecorder.view.FloatView;
-
 import java.io.File;
-import java.lang.reflect.Array;
 import java.util.ArrayList;
-import java.util.Arrays;
 
 @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
 public class MainActivity extends AppCompatActivity {
+    private SwipeRefreshLayout swipeRefreshLayout;
     private static final int REQUEST_CODE_FLOAT_PERMISSION = 100;
     private static final int REQUEST_CODE_SCREEN_CAPTURE = 101;
+    private static final String TAG = "MainActivity";
     private Context context;
     private Button btn_start;
     private FloatView floatView;
@@ -58,6 +56,10 @@ public class MainActivity extends AppCompatActivity {
     private RecyclerView recycler_records;
     private RecordsRecyclerAdapter adapter;
     private ArrayList<RecordSourceBean> recordSourceBeans;
+    private Toolbar toolbar;
+    private DrawerLayout drawer;
+    private ActionBarDrawerToggle toggle;
+    private MenuItem menuItemShare,menuItemDelete;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -77,7 +79,6 @@ public class MainActivity extends AppCompatActivity {
     private void initData() {
         projectionManager = (MediaProjectionManager) getSystemService(MEDIA_PROJECTION_SERVICE);
         context = getApplicationContext();
-        recordSourceBeans = new ArrayList<RecordSourceBean>();
         getRecordSourceBeans();
     }
 
@@ -85,6 +86,7 @@ public class MainActivity extends AppCompatActivity {
      * 获取录像和图片路径
      */
     private void getRecordSourceBeans(){
+        recordSourceBeans = new ArrayList<RecordSourceBean>();
         String recordDirectory = Tools.getSaveRecordDirectory();
         String imageDirectory = Tools.getSaveImageDirectory(getApplicationContext());
         File file = new File(recordDirectory);
@@ -101,13 +103,14 @@ public class MainActivity extends AppCompatActivity {
      * 界面初始化
      */
     private void initView() {
+        swipeRefreshLayout = (SwipeRefreshLayout) findViewById(R.id.swipeRefreshLayout);
         btn_start = (Button) findViewById(R.id.button);
         floatView = new FloatView(context);
         floatView.setEnabled(false);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar_main);
+        toolbar = (Toolbar) findViewById(R.id.toolbar_main);
         setSupportActionBar(toolbar);
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.main_drawer_layout);
-        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+        drawer = (DrawerLayout) findViewById(R.id.main_drawer_layout);
+        toggle = new ActionBarDrawerToggle(this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
         drawer.addDrawerListener(toggle);
         toggle.syncState();
         adapter = new RecordsRecyclerAdapter(recordSourceBeans,this);
@@ -154,9 +157,90 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onItemLongClick(View view, int position) {
-
+                //进入编辑模式
+                editToolBar();
             }
         });
+        swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                refresh();
+            }
+        });
+    }
+
+    private void refresh(){
+        getRecordSourceBeans();
+        adapter.notifyDataSetChanged();
+        if(swipeRefreshLayout.isRefreshing()) {
+            swipeRefreshLayout.setRefreshing(false);
+        }
+    }
+    /**
+     * ToolBar进入编辑模式
+     */
+    private void editToolBar() {
+        toolbar.setTitle(R.string.edit);
+        showActionView();
+//        toolbar.setMenu();
+    }
+
+    /**
+     * ToolBar退出编辑模式
+     */
+    private void exitEditToolBar(){
+        toolbar.setTitle(R.string.app_name);
+        hideActionView();
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        Log.i(TAG,"onCreateOptionsMenu");
+        getMenuInflater().inflate(R.menu.menu_main, menu);
+        menuItemShare = menu.findItem(R.id.action_share);
+        menuItemDelete = menu.findItem(R.id.action_delete);
+        menuItemShare.setVisible(false);
+        menuItemDelete.setVisible(false);
+        return true;
+    }
+
+    private void hideActionView(){
+        if(menuItemShare!=null&&menuItemDelete!=null){
+            menuItemShare.setVisible(false);
+            menuItemDelete.setVisible(false);
+        }
+    }
+
+    private void showActionView(){
+        if(menuItemShare!=null&&menuItemDelete!=null){
+            menuItemShare.setVisible(true);
+            menuItemDelete.setVisible(true);
+        }
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        boolean[] isChecked = adapter.getIsChecked();
+        int id= item.getItemId();
+        switch (id){
+            case R.id.action_share:
+                //TODO 分享
+                break;
+            case R.id.action_delete:
+                //TODO 删除
+                for(int i=0;i<recordSourceBeans.size();i++){
+                    RecordSourceBean recordSourceBean = recordSourceBeans.get(i);
+                    if(isChecked[i]) {
+                        File image = new File(recordSourceBean.getImageFilePath());
+                        File record = new File(recordSourceBean.getRecordFilePath());
+                        image.delete();
+                        record.delete();
+                    }
+                }
+                refresh();
+                break;
+        }
+        return super.onOptionsItemSelected(item);
     }
 
     /**
@@ -266,5 +350,16 @@ public class MainActivity extends AppCompatActivity {
     protected void onDestroy() {
         super.onDestroy();
         unbindService(connection);
+    }
+
+    @Override
+    public void onBackPressed() {
+        if(adapter!=null&&adapter.isEdit()){
+            //退出编辑模式
+            adapter.exitEdit();
+            exitEditToolBar();
+        }else {
+            super.onBackPressed();
+        }
     }
 }

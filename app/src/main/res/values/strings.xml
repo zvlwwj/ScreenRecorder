@@ -81,5 +81,8 @@
     <string name="lockscreen_transport_play_description">play</string>
     <string name="lockscreen_transport_pause_description">pause</string>
     <string name="description">描述</string>
+    <string name="edit">编辑</string>
+    <string name="share">分享</string>
+    <string name="delete">删除</string>
 
 </resources>

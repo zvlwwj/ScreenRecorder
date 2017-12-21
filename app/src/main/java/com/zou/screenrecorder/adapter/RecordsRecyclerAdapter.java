@@ -1,9 +1,11 @@
 package com.zou.screenrecorder.adapter;
 
+import android.animation.ValueAnimator;
 import android.content.Context;
-import android.graphics.Bitmap;
 import android.media.MediaPlayer;
-import android.media.ThumbnailUtils;
+import android.os.Build;
+import android.os.SystemClock;
+import android.support.annotation.RequiresApi;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
 import android.view.ViewGroup;
@@ -11,17 +13,15 @@ import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.widget.VideoView;
 
 import com.bumptech.glide.Glide;
 import com.zou.screenrecorder.R;
-import com.zou.screenrecorder.bean.RecordBean;
 import com.zou.screenrecorder.bean.RecordSourceBean;
 import com.zou.screenrecorder.utils.Tools;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 import rx.Observable;
 import rx.android.schedulers.AndroidSchedulers;
@@ -29,25 +29,31 @@ import rx.functions.Action1;
 import rx.functions.Func1;
 import rx.schedulers.Schedulers;
 
-import static android.provider.MediaStore.Images.Thumbnails.MINI_KIND;
-import static android.provider.MediaStore.Video.Thumbnails.FULL_SCREEN_KIND;
-import static android.provider.MediaStore.Images.Thumbnails.MICRO_KIND;
 /**
  * Created by zou on 2017/12/11.
  */
 
 //TODO 要考虑到图片获取不到的情况（应用缓存文件被删）
+@RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
 public class RecordsRecyclerAdapter extends RecyclerView.Adapter<RecordsRecyclerAdapter.ViewHolder> {
     private ArrayList<RecordSourceBean> recordSourceBeans;
     private Context context;
     private OnItemClickLitener mOnItemClickLitener;
-    private static final int MODE_NORMAl = 0;//普通模式
-    private static final int MODE_EDIT = 1;//编辑模式
-    private int mode = MODE_NORMAl;
+    private boolean isEdit = false;
+    //储存是否被选中的boolean数组
+    private boolean[] isChecked;
     public RecordsRecyclerAdapter(ArrayList<RecordSourceBean> recordSourceBeans,Context context){
         this.recordSourceBeans = recordSourceBeans;
         this.context = context;
     }
+
+    @Override
+    public void registerAdapterDataObserver(RecyclerView.AdapterDataObserver observer) {
+        super.registerAdapterDataObserver(observer);
+        isChecked = new boolean[recordSourceBeans.size()];
+        Arrays.fill(isChecked,false);
+    }
+
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         View v = View.inflate(parent.getContext(), R.layout.item_records,null);
@@ -58,23 +64,44 @@ public class RecordsRecyclerAdapter extends RecyclerView.Adapter<RecordsRecycler
     @Override
     public void onBindViewHolder(final ViewHolder holder, final int position) {
         RecordSourceBean recordSourceBean = recordSourceBeans.get(position);
-        handleView(holder,recordSourceBean);
+        handleView(holder,recordSourceBean,position);
         //添加事件监听
         if(mOnItemClickLitener!=null){
             holder.iv_item_records.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    mOnItemClickLitener.onItemClick(holder.iv_item_records,position);
+                    if(isEdit ){
+                        //如果是编辑模式单击，则选中该item进行编辑
+                        isChecked[position] = !isChecked[position];
+                        if(isChecked[position]) {
+                            holder.iv_item_records.animate().scaleX(0.85f).scaleY(0.85f).setDuration(300).start();
+                            holder.iv_item_check.setSelected(true);
+                        }else{
+                            holder.iv_item_records.animate().scaleX(1f).scaleY(1f).setDuration(300).start();
+                            holder.iv_item_check.setSelected(false);
+                        }
+                    }else {
+                        //否则，进入观看录像界面
+                        mOnItemClickLitener.onItemClick(holder.iv_item_records, position);
+                    }
                 }
             });
             holder.iv_item_records.setOnLongClickListener(new View.OnLongClickListener() {
+
                 @Override
                 public boolean onLongClick(View v) {
-                    //TODO 进入编辑模式
-                    holder.iv_item_records.animate().rotation(90).setDuration(1000).start();
-                    mOnItemClickLitener.onItemLongClick(holder.iv_item_records,position);
-                    mode = MODE_EDIT;
-//                    notifyDataSetChanged();
+                    if(!isEdit) {
+                        mOnItemClickLitener.onItemLongClick(holder.iv_item_records, position);
+                        isEdit = true;
+                        isChecked[position] = true;
+                        holder.iv_item_records.animate().scaleX(0.85f).scaleY(0.85f).setDuration(300).withEndAction(new Runnable() {
+                            @Override
+                            public void run() {
+                                notifyDataSetChanged();
+                            }
+                        }).start();
+                        holder.iv_item_check.setSelected(true);
+                    }
                     return true;
                 }
             });
@@ -82,15 +109,24 @@ public class RecordsRecyclerAdapter extends RecyclerView.Adapter<RecordsRecycler
     }
 
     /**
-     *处理ViewHolder
+     *处理ViewHolder的初始化操作
      */
-    private void handleView(final ViewHolder holder, RecordSourceBean recordSourceBean) {
+    private void handleView(final ViewHolder holder, RecordSourceBean recordSourceBean,int position) {
         //TODO 更换loading图！
         holder.iv_item_records.setImageResource(R.mipmap.bg_load);
-        if(mode == MODE_EDIT) {
+        if(isEdit) {
+            //进入编辑模式
             holder.iv_item_check.setVisibility(View.VISIBLE);
+        }else{
+            //退出编辑模式
+            holder.iv_item_check.setVisibility(View.GONE);
+            if(isChecked[position]){
+                holder.iv_item_records.animate().scaleX(1f).scaleY(1f).setDuration(300).start();
+                holder.iv_item_check.setSelected(false);
+                isChecked[position] = false;
+            }
         }
-        holder.iv_item_records.setLayoutParams(new FrameLayout.LayoutParams(Tools.getScreenWidth(context)/2,Tools.getScreenHeight(context)/2));
+        holder.iv_item_records.setLayoutParams(new FrameLayout.LayoutParams(Tools.getScreenWidth(context)/2-Tools.dip2px(context,16),Tools.getScreenHeight(context)/2-Tools.dip2px(context,16)));
         Glide.with(context).load(recordSourceBean.getImageFilePath()).into(holder.iv_item_records);
         Observable.just(recordSourceBean)
                 .subscribeOn(Schedulers.io())//订阅操作在io线程中
@@ -159,5 +195,18 @@ public class RecordsRecyclerAdapter extends RecyclerView.Adapter<RecordsRecycler
     public void setOnItemClickLitener(OnItemClickLitener mOnItemClickLitener)
     {
         this.mOnItemClickLitener = mOnItemClickLitener;
+    }
+
+    public boolean isEdit(){
+        return isEdit;
+    }
+
+    public void exitEdit(){
+        isEdit = false;
+        notifyDataSetChanged();
+    }
+
+    public boolean[] getIsChecked(){
+        return isChecked;
     }
 }
