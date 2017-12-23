@@ -9,7 +9,9 @@ import android.media.projection.MediaProjection;
 import android.media.projection.MediaProjectionManager;
 import android.net.Uri;
 import android.os.Build;
+import android.os.Handler;
 import android.os.IBinder;
+import android.os.Looper;
 import android.provider.Settings;
 import android.support.annotation.RequiresApi;
 import android.support.v4.widget.DrawerLayout;
@@ -17,6 +19,7 @@ import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
@@ -86,7 +89,10 @@ public class MainActivity extends AppCompatActivity {
      * 获取录像和图片路径
      */
     private void getRecordSourceBeans(){
-        recordSourceBeans = new ArrayList<RecordSourceBean>();
+        if(recordSourceBeans == null) {
+            recordSourceBeans = new ArrayList<RecordSourceBean>();
+        }
+        recordSourceBeans.clear();
         String recordDirectory = Tools.getSaveRecordDirectory();
         String imageDirectory = Tools.getSaveImageDirectory(getApplicationContext());
         File file = new File(recordDirectory);
@@ -119,6 +125,7 @@ public class MainActivity extends AppCompatActivity {
         recycler_records.setLayoutManager(mgr);
 //        recycler_records.addItemDecoration(new DividerGridItemDecoration(this));
         recycler_records.setAdapter(adapter);
+        recycler_records.setItemAnimator(new DefaultItemAnimator());
     }
 
     private void setListener() {
@@ -141,6 +148,7 @@ public class MainActivity extends AppCompatActivity {
                         //停止录制
                         recordService.stopRecord();
                         floatView.setImageResource(R.mipmap.icon_play);
+                        refresh();
                     } else {
                         requestRecordPermission();
                     }
@@ -228,6 +236,8 @@ public class MainActivity extends AppCompatActivity {
                 break;
             case R.id.action_delete:
                 //TODO 删除
+                exitEditToolBar();
+                adapter.exitEdit();
                 for(int i=0;i<recordSourceBeans.size();i++){
                     RecordSourceBean recordSourceBean = recordSourceBeans.get(i);
                     if(isChecked[i]) {
@@ -235,9 +245,14 @@ public class MainActivity extends AppCompatActivity {
                         File record = new File(recordSourceBean.getRecordFilePath());
                         image.delete();
                         record.delete();
+                        recordSourceBeans.remove(i);
+                        adapter.notifyItemRemoved(i);
+
                     }
                 }
-                refresh();
+
+
+//                refresh();
                 break;
         }
         return super.onOptionsItemSelected(item);

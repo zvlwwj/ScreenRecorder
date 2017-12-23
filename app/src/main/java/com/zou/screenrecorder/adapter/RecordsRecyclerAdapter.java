@@ -7,6 +7,7 @@ import android.os.Build;
 import android.os.SystemClock;
 import android.support.annotation.RequiresApi;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
@@ -36,6 +37,7 @@ import rx.schedulers.Schedulers;
 //TODO 要考虑到图片获取不到的情况（应用缓存文件被删）
 @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
 public class RecordsRecyclerAdapter extends RecyclerView.Adapter<RecordsRecyclerAdapter.ViewHolder> {
+    private static final String TAG = "RecordsRecyclerAdapter";
     private ArrayList<RecordSourceBean> recordSourceBeans;
     private Context context;
     private OnItemClickLitener mOnItemClickLitener;
@@ -45,13 +47,35 @@ public class RecordsRecyclerAdapter extends RecyclerView.Adapter<RecordsRecycler
     public RecordsRecyclerAdapter(ArrayList<RecordSourceBean> recordSourceBeans,Context context){
         this.recordSourceBeans = recordSourceBeans;
         this.context = context;
+        registerAdapterDataObserver(observer);
+        isChecked = new boolean[recordSourceBeans.size()];
+        Arrays.fill(isChecked, false);
     }
 
     @Override
     public void registerAdapterDataObserver(RecyclerView.AdapterDataObserver observer) {
         super.registerAdapterDataObserver(observer);
-        isChecked = new boolean[recordSourceBeans.size()];
-        Arrays.fill(isChecked,false);
+    }
+
+    RecyclerView.AdapterDataObserver observer = new RecyclerView.AdapterDataObserver()
+    {
+        @Override
+        public void onChanged()
+        {
+            super.onChanged();
+            Log.i(TAG,"size : "+recordSourceBeans.size());
+            //数据发生变化，则数组重新声明
+            if(isChecked.length!=recordSourceBeans.size()){
+                isChecked = new boolean[recordSourceBeans.size()];
+                Arrays.fill(isChecked, false);
+            }
+        }
+    };
+
+    @Override
+    public void onDetachedFromRecyclerView(RecyclerView recyclerView) {
+        super.onDetachedFromRecyclerView(recyclerView);
+        unregisterAdapterDataObserver(observer);
     }
 
     @Override
@@ -204,6 +228,10 @@ public class RecordsRecyclerAdapter extends RecyclerView.Adapter<RecordsRecycler
     public void exitEdit(){
         isEdit = false;
         notifyDataSetChanged();
+    }
+
+    public void exitEditTmp(){
+        isEdit = false;
     }
 
     public boolean[] getIsChecked(){
