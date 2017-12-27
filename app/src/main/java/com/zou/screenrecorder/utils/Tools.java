@@ -122,4 +122,16 @@ public class Tools {
         return (int) (pxValue / scale + 0.5f);
     }
 
+    /**
+     *
+     * @return
+     */
+    public static ArrayList<Boolean> ToArrayList(boolean[] array){
+        ArrayList<Boolean> booleans = new ArrayList<Boolean>();
+        for (boolean b: array) {
+            booleans.add(b);
+        }
+        return booleans;
+    }
+
 }

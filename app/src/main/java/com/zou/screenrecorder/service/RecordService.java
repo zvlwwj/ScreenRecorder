@@ -129,7 +129,7 @@ public class RecordService extends Service {
         mediaRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
         mediaRecorder.setVideoSource(MediaRecorder.VideoSource.SURFACE);
         mediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
-        mediaRecorder.setOutputFile(getSaveRecordDirectory() + fileName + ".mp4");
+        mediaRecorder.setOutputFile(Tools.getSaveRecordDirectory() + fileName + ".mp4");
         mediaRecorder.setVideoSize(width, height);
         mediaRecorder.setVideoEncoder(MediaRecorder.VideoEncoder.H264);
         mediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
@@ -146,7 +146,7 @@ public class RecordService extends Service {
      * 截屏
      */
     private void captureScreen() {
-        String pathImage = getSaveImageDirectory(getApplicationContext());
+        String pathImage = Tools.getSaveImageDirectory(getApplicationContext());
 
         String nameImage = pathImage+fileName+".png";
         SystemClock.sleep(1000);
@@ -184,44 +184,6 @@ public class RecordService extends Service {
             e.printStackTrace();
         }
     }
-
-    /**
-     * 获取录像路径的文件夹
-     * @return
-     */
-    public String getSaveRecordDirectory() {
-        if (Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
-            String rootDir = Environment.getExternalStorageDirectory().getAbsolutePath() + "/" + "ScreenRecord" + "/";
-
-            File file = new File(rootDir);
-            if (!file.exists()) {
-                if (!file.mkdirs()) {
-                    return null;
-                }
-            }
-
-            Toast.makeText(getApplicationContext(), rootDir, Toast.LENGTH_SHORT).show();
-
-            return rootDir;
-        } else {
-            return null;
-        }
-    }
-    /**
-     * 获取图像路径的文件夹
-     * @return
-     */
-    public String getSaveImageDirectory(Context context){
-        String path = context.getExternalCacheDir()+"/"+"Images"+"/";
-        File f = new File(path);
-        if(!f.exists()) {
-            if (!f.mkdirs()) {
-                return null;
-            }
-        }
-        return path;
-    }
-
     public class RecordBinder extends Binder {
         public RecordService getRecordService() {
             return RecordService.this;

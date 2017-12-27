@@ -7,10 +7,12 @@ package com.zou.screenrecorder.bean;
 public class RecordSourceBean {
     private String RecordFilePath;
     private String ImageFilePath;
-
-    public RecordSourceBean(String recordFilePath, String imageFilePath) {
+    private boolean tmpDelete;
+    private int sourcePosition;
+    public RecordSourceBean(String recordFilePath, String imageFilePath,int sourcePosition) {
         RecordFilePath = recordFilePath;
         ImageFilePath = imageFilePath;
+        this.sourcePosition = sourcePosition;
     }
 
     public String getRecordFilePath() {
@@ -27,5 +29,21 @@ public class RecordSourceBean {
 
     public void setImageFilePath(String imageFilePath) {
         ImageFilePath = imageFilePath;
+    }
+
+    public boolean isTmpDelete() {
+        return tmpDelete;
+    }
+
+    public void setTmpDelete(boolean tmpDelete) {
+        this.tmpDelete = tmpDelete;
+    }
+
+    public int getSourcePosition() {
+        return sourcePosition;
+    }
+
+    public void setSourcePosition(int sourcePosition) {
+        this.sourcePosition = sourcePosition;
     }
 }

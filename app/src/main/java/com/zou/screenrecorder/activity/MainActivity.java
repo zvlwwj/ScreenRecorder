@@ -9,16 +9,15 @@ import android.media.projection.MediaProjection;
 import android.media.projection.MediaProjectionManager;
 import android.net.Uri;
 import android.os.Build;
+import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
-import android.os.Looper;
 import android.provider.Settings;
 import android.support.annotation.RequiresApi;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -41,8 +40,12 @@ import com.zou.screenrecorder.service.RecordService;
 import com.zou.screenrecorder.utils.Constant;
 import com.zou.screenrecorder.utils.Tools;
 import com.zou.screenrecorder.view.FloatView;
+
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.List;
 
 @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
 public class MainActivity extends AppCompatActivity {
@@ -63,6 +66,7 @@ public class MainActivity extends AppCompatActivity {
     private DrawerLayout drawer;
     private ActionBarDrawerToggle toggle;
     private MenuItem menuItemShare,menuItemDelete;
+    private Handler handler;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -82,6 +86,7 @@ public class MainActivity extends AppCompatActivity {
     private void initData() {
         projectionManager = (MediaProjectionManager) getSystemService(MEDIA_PROJECTION_SERVICE);
         context = getApplicationContext();
+        handler = new Handler();
         getRecordSourceBeans();
     }
 
@@ -97,10 +102,11 @@ public class MainActivity extends AppCompatActivity {
         String imageDirectory = Tools.getSaveImageDirectory(getApplicationContext());
         File file = new File(recordDirectory);
         if(file.list()!=null&&file.list().length>0) {
-            for (String string : file.list()) {
+            for (int i=0 ;i<file.list().length;i++) {
+                String string = file.list()[i];
                 String recordPath = recordDirectory+string;
                 String imagePath = imageDirectory+string.replace(".mp4",".png");
-                recordSourceBeans.add(new RecordSourceBean(recordPath,imagePath));
+                recordSourceBeans.add(new RecordSourceBean(recordPath,imagePath,i));
             }
         }
     }
@@ -125,7 +131,17 @@ public class MainActivity extends AppCompatActivity {
         recycler_records.setLayoutManager(mgr);
 //        recycler_records.addItemDecoration(new DividerGridItemDecoration(this));
         recycler_records.setAdapter(adapter);
-        recycler_records.setItemAnimator(new DefaultItemAnimator());
+        recycler_records.setItemAnimator(new DefaultItemAnimator(){
+            @Override
+            public void onMoveFinished(RecyclerView.ViewHolder item) {
+                handler.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        adapter.notifyDataSetChanged();
+                    }
+                },400);
+            }
+        });
     }
 
     private void setListener() {
@@ -179,6 +195,8 @@ public class MainActivity extends AppCompatActivity {
 
     private void refresh(){
         getRecordSourceBeans();
+//        boolean[] newIsChecked = new boolean[recordSourceBeans.size()];
+//        adapter.setIsChecked(newIsChecked);
         adapter.notifyDataSetChanged();
         if(swipeRefreshLayout.isRefreshing()) {
             swipeRefreshLayout.setRefreshing(false);
@@ -236,22 +254,86 @@ public class MainActivity extends AppCompatActivity {
                 break;
             case R.id.action_delete:
                 //TODO 删除
+                //退出编辑模式
                 exitEditToolBar();
-                adapter.exitEdit();
+                adapter.exitEditTmp();
+                //删除文件
+//                for(int i=0;i<recordSourceBeans.size();i++){
+//
+//                }
+
+//                RecordSourceBean[] recordArray = new RecordSourceBean[recordSourceBeans.size()];
+//                recordSourceBeans.toArray(recordArray);
+//                for(int i=0;i<recordArray.length;i++){
+//                    RecordSourceBean recordSourceBean = recordArray[i];
+//                    if(isChecked[i]){
+//                        Log.i(TAG,"main isChecked :"+i);
+//                        File image = new File(recordSourceBean.getImageFilePath());
+//                        File record = new File(recordSourceBean.getRecordFilePath());
+//                        image.delete();
+//                        record.delete();
+//                        recordSourceBeans.remove(i);
+//                        adapter.notifyItemRemoved(i);
+//                    }
+//                }
+
+//                ArrayList<Boolean> array = Tools.ToArrayList(isChecked);
+//                Iterator<RecordSourceBean> iterator = recordSourceBeans.iterator();
                 for(int i=0;i<recordSourceBeans.size();i++){
                     RecordSourceBean recordSourceBean = recordSourceBeans.get(i);
-                    if(isChecked[i]) {
+                    if(isChecked[i]){
+                        recordSourceBean.setTmpDelete(true);
+                    }else{
+                        recordSourceBean.setTmpDelete(false);
+                    }
+                }
+                int i=0;
+                for(Iterator<RecordSourceBean> iterator = recordSourceBeans.iterator() ;iterator.hasNext();i++){
+                    RecordSourceBean recordSourceBean = iterator.next();
+                    if(recordSourceBean.isTmpDelete()){
                         File image = new File(recordSourceBean.getImageFilePath());
                         File record = new File(recordSourceBean.getRecordFilePath());
                         image.delete();
                         record.delete();
-                        recordSourceBeans.remove(i);
-                        adapter.notifyItemRemoved(i);
-
+                        iterator.remove();
+                        adapter.notifyItemRemoved(recordSourceBean.getSourcePosition());
                     }
                 }
+//                int i=0;
+//                for(Iterator<RecordSourceBean> iterator = recordSourceBeans.iterator() ;iterator.hasNext();i++){
+//                    RecordSourceBean recordSourceBean = iterator.next();
+//                    if(array.get(i)){
+//                        Log.i(TAG,"main isChecked :"+i);
+//                        File image = new File(recordSourceBean.getImageFilePath());
+//                        File record = new File(recordSourceBean.getRecordFilePath());
+//                        image.delete();
+//                        record.delete();
+//                        recordSourceBeans.remove(i);
+//                        array.remove(i);
+//                        adapter.notifyItemRemoved(i);
+//                    }
+//                }
 
-
+//                Iterator<RecordSourceBean> iterator = recordSourceBeans.iterator();
+//                while(iterator.hasNext()){
+//                    RecordSourceBean recordSourceBean = iterator.next();
+//                    if(isChecked[]) {
+//                        Log.i(TAG,"main isChecked :"+i);
+//                        File image = new File(recordSourceBean.getImageFilePath());
+//                        File record = new File(recordSourceBean.getRecordFilePath());
+//                        image.delete();
+//                        record.delete();
+//                        recordSourceBeans.remove(i);
+//                        adapter.notifyItemRemoved(i);
+//                        boolean[] newIsChecked = new boolean[recordSourceBeans.size()];
+//                        adapter.setIsChecked(newIsChecked);
+//                    }
+//                }
+//                for(int i=0;i<recordSourceBeans.size();i++){
+//                    RecordSourceBean recordSourceBean = recordSourceBeans.get(i);
+//
+//                }
+//                adapter.onChanged();
 //                refresh();
                 break;
         }
