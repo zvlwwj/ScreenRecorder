@@ -104,7 +104,7 @@ public class RecordsRecyclerAdapter extends RecyclerView.Adapter<RecordsRecycler
                         //如果是编辑模式单击，则选中该item进行编辑
                         isChecked[position] = !isChecked[position];
                         if(isChecked[position]) {
-                            holder.iv_item_records.animate().scaleX(0.85f).scaleY(0.85f).setDuration(300).start();
+                            holder.iv_item_records.animate().scaleX(0.9f).scaleY(0.9f).setDuration(300).start();
                             holder.iv_item_check.setSelected(true);
                             Log.i(TAG,"adapter isChecked :"+position);
                         }else{
@@ -155,7 +155,7 @@ public class RecordsRecyclerAdapter extends RecyclerView.Adapter<RecordsRecycler
             //进入编辑模式
             holder.iv_item_check.setVisibility(View.VISIBLE);
             if(isChecked[position]){
-                holder.iv_item_records.animate().scaleX(0.85f).scaleY(0.85f).setDuration(300).start();
+                holder.iv_item_records.animate().scaleX(0.9f).scaleY(0.9f).setDuration(300).start();
                 holder.iv_item_check.setSelected(true);
 //                isChecked[position] = true;
             }else{

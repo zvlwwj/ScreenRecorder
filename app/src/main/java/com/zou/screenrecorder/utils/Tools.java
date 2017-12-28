@@ -1,8 +1,11 @@
 package com.zou.screenrecorder.utils;
 
+import android.content.ContentValues;
 import android.content.Context;
+import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.Bitmap;
+import android.net.Uri;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.util.DisplayMetrics;
@@ -122,16 +125,66 @@ public class Tools {
         return (int) (pxValue / scale + 0.5f);
     }
 
+
+
     /**
+     * 分享单个视频
      *
-     * @return
+     * @param context 上下文
+     * @param path    视频的路径
      */
-    public static ArrayList<Boolean> ToArrayList(boolean[] array){
-        ArrayList<Boolean> booleans = new ArrayList<Boolean>();
-        for (boolean b: array) {
-            booleans.add(b);
-        }
-        return booleans;
+    public static void shareImage(Context context, String path) {
+        //由文件得到uri
+        Uri imageUri = getVideoContentUri(context,new File(path));
+        Intent shareIntent = new Intent();
+        shareIntent.setAction(Intent.ACTION_SEND);
+        shareIntent.putExtra(Intent.EXTRA_STREAM, imageUri);
+        shareIntent.setType("video/mp4");
+        context.startActivity(Intent.createChooser(shareIntent, "分享到"));
     }
 
+    /**
+     * 分享多个视频
+     *
+     * @param context 上下文
+     * @param paths   路径的集合
+     */
+    public static void shareImages(Context context, List<String> paths) {
+        ArrayList<Uri> uriList = new ArrayList<>();
+        for (String path : paths) {
+            uriList.add(getVideoContentUri(context,new File(path)));
+        }
+        Intent shareIntent = new Intent();
+        shareIntent.setAction(Intent.ACTION_SEND_MULTIPLE);
+        shareIntent.putParcelableArrayListExtra(Intent.EXTRA_STREAM, uriList);
+        shareIntent.setType("video/mp4");
+        context.startActivity(Intent.createChooser(shareIntent, "分享到"));
+    }
+
+    /**
+     * Gets the content:// URI from the given corresponding path to a file
+     *
+     * @param context
+     * @param videoFile
+     * @return content Uri
+     */
+    public static Uri getVideoContentUri(Context context, File videoFile) {
+        String filePath = videoFile.getAbsolutePath();
+        Cursor cursor = context.getContentResolver().query(MediaStore.Video.Media.EXTERNAL_CONTENT_URI,
+                new String[] { MediaStore.Video.Media._ID }, MediaStore.Video.Media.DATA + "=? ",
+                new String[] { filePath }, null);
+        if (cursor != null && cursor.moveToFirst()) {
+            int id = cursor.getInt(cursor.getColumnIndex(MediaStore.MediaColumns._ID));
+            Uri baseUri = Uri.parse("content://media/external/video/media");
+            return Uri.withAppendedPath(baseUri, "" + id);
+        } else {
+            if (videoFile.exists()) {
+                ContentValues values = new ContentValues();
+                values.put(MediaStore.Video.Media.DATA, filePath);
+                return context.getContentResolver().insert(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, values);
+            } else {
+                return null;
+            }
+        }
+    }
 }

@@ -13,7 +13,9 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.provider.Settings;
+import android.support.annotation.NonNull;
 import android.support.annotation.RequiresApi;
+import android.support.design.widget.BottomSheetBehavior;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
@@ -28,6 +30,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
+import android.widget.RelativeLayout;
 import android.widget.Toast;
 
 import com.zhy.m.permission.MPermissions;
@@ -43,13 +46,10 @@ import com.zou.screenrecorder.view.FloatView;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Iterator;
-import java.util.List;
 
 @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
 public class MainActivity extends AppCompatActivity {
-    private SwipeRefreshLayout swipeRefreshLayout;
     private static final int REQUEST_CODE_FLOAT_PERMISSION = 100;
     private static final int REQUEST_CODE_SCREEN_CAPTURE = 101;
     private static final String TAG = "MainActivity";
@@ -100,6 +100,9 @@ public class MainActivity extends AppCompatActivity {
         recordSourceBeans.clear();
         String recordDirectory = Tools.getSaveRecordDirectory();
         String imageDirectory = Tools.getSaveImageDirectory(getApplicationContext());
+        if(recordDirectory == null){
+            return;
+        }
         File file = new File(recordDirectory);
         if(file.list()!=null&&file.list().length>0) {
             for (int i=0 ;i<file.list().length;i++) {
@@ -115,7 +118,6 @@ public class MainActivity extends AppCompatActivity {
      * 界面初始化
      */
     private void initView() {
-        swipeRefreshLayout = (SwipeRefreshLayout) findViewById(R.id.swipeRefreshLayout);
         btn_start = (Button) findViewById(R.id.button);
         floatView = new FloatView(context);
         floatView.setEnabled(false);
@@ -129,7 +131,6 @@ public class MainActivity extends AppCompatActivity {
         recycler_records = (RecyclerView) findViewById(R.id.recycler_records);
         GridLayoutManager mgr=new GridLayoutManager(this,2);
         recycler_records.setLayoutManager(mgr);
-//        recycler_records.addItemDecoration(new DividerGridItemDecoration(this));
         recycler_records.setAdapter(adapter);
         recycler_records.setItemAnimator(new DefaultItemAnimator(){
             @Override
@@ -185,22 +186,11 @@ public class MainActivity extends AppCompatActivity {
                 editToolBar();
             }
         });
-        swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
-            @Override
-            public void onRefresh() {
-                refresh();
-            }
-        });
     }
 
     private void refresh(){
         getRecordSourceBeans();
-//        boolean[] newIsChecked = new boolean[recordSourceBeans.size()];
-//        adapter.setIsChecked(newIsChecked);
         adapter.notifyDataSetChanged();
-        if(swipeRefreshLayout.isRefreshing()) {
-            swipeRefreshLayout.setRefreshing(false);
-        }
     }
     /**
      * ToolBar进入编辑模式
@@ -250,35 +240,27 @@ public class MainActivity extends AppCompatActivity {
         int id= item.getItemId();
         switch (id){
             case R.id.action_share:
-                //TODO 分享
+                exitEditToolBar();
+                adapter.exitEdit();
+                ArrayList<String> pathList = new ArrayList<>();
+                for(int i=0;i<recordSourceBeans.size();i++){
+                    if(isChecked[i]){
+                        pathList.add(recordSourceBeans.get(i).getRecordFilePath());
+                    }
+                }
+                if(pathList.size()==1){
+                    Tools.shareImage(this, pathList.get(0));
+                }else if(pathList.size()>=1){
+                    Toast.makeText(this,R.string.wechat_video_support_limit,Toast.LENGTH_SHORT).show();
+                    Tools.shareImages(this, pathList);
+                }
                 break;
+
             case R.id.action_delete:
-                //TODO 删除
                 //退出编辑模式
                 exitEditToolBar();
                 adapter.exitEditTmp();
                 //删除文件
-//                for(int i=0;i<recordSourceBeans.size();i++){
-//
-//                }
-
-//                RecordSourceBean[] recordArray = new RecordSourceBean[recordSourceBeans.size()];
-//                recordSourceBeans.toArray(recordArray);
-//                for(int i=0;i<recordArray.length;i++){
-//                    RecordSourceBean recordSourceBean = recordArray[i];
-//                    if(isChecked[i]){
-//                        Log.i(TAG,"main isChecked :"+i);
-//                        File image = new File(recordSourceBean.getImageFilePath());
-//                        File record = new File(recordSourceBean.getRecordFilePath());
-//                        image.delete();
-//                        record.delete();
-//                        recordSourceBeans.remove(i);
-//                        adapter.notifyItemRemoved(i);
-//                    }
-//                }
-
-//                ArrayList<Boolean> array = Tools.ToArrayList(isChecked);
-//                Iterator<RecordSourceBean> iterator = recordSourceBeans.iterator();
                 for(int i=0;i<recordSourceBeans.size();i++){
                     RecordSourceBean recordSourceBean = recordSourceBeans.get(i);
                     if(isChecked[i]){
@@ -299,42 +281,6 @@ public class MainActivity extends AppCompatActivity {
                         adapter.notifyItemRemoved(recordSourceBean.getSourcePosition());
                     }
                 }
-//                int i=0;
-//                for(Iterator<RecordSourceBean> iterator = recordSourceBeans.iterator() ;iterator.hasNext();i++){
-//                    RecordSourceBean recordSourceBean = iterator.next();
-//                    if(array.get(i)){
-//                        Log.i(TAG,"main isChecked :"+i);
-//                        File image = new File(recordSourceBean.getImageFilePath());
-//                        File record = new File(recordSourceBean.getRecordFilePath());
-//                        image.delete();
-//                        record.delete();
-//                        recordSourceBeans.remove(i);
-//                        array.remove(i);
-//                        adapter.notifyItemRemoved(i);
-//                    }
-//                }
-
-//                Iterator<RecordSourceBean> iterator = recordSourceBeans.iterator();
-//                while(iterator.hasNext()){
-//                    RecordSourceBean recordSourceBean = iterator.next();
-//                    if(isChecked[]) {
-//                        Log.i(TAG,"main isChecked :"+i);
-//                        File image = new File(recordSourceBean.getImageFilePath());
-//                        File record = new File(recordSourceBean.getRecordFilePath());
-//                        image.delete();
-//                        record.delete();
-//                        recordSourceBeans.remove(i);
-//                        adapter.notifyItemRemoved(i);
-//                        boolean[] newIsChecked = new boolean[recordSourceBeans.size()];
-//                        adapter.setIsChecked(newIsChecked);
-//                    }
-//                }
-//                for(int i=0;i<recordSourceBeans.size();i++){
-//                    RecordSourceBean recordSourceBean = recordSourceBeans.get(i);
-//
-//                }
-//                adapter.onChanged();
-//                refresh();
                 break;
         }
         return super.onOptionsItemSelected(item);
@@ -451,12 +397,70 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public void onBackPressed() {
+        //退出编辑模式
         if(adapter!=null&&adapter.isEdit()){
-            //退出编辑模式
             adapter.exitEdit();
             exitEditToolBar();
-        }else {
-            super.onBackPressed();
+            return;
         }
+        super.onBackPressed();
+
+    }
+
+    /**
+     * 分享到QQ好友
+     *
+     */
+    private void shareToQQFriend() {
+        Intent intent = new Intent();
+        ComponentName componentName = new ComponentName("com.tencent.mobileqq", "com.tencent.mobileqq.activity.JumpActivity");
+        intent.setComponent(componentName);
+        intent.setAction(Intent.ACTION_SEND);
+        intent.setType("text/*");
+        intent.putExtra(Intent.EXTRA_TEXT, "这是分享内容");
+        startActivity(intent);
+    }
+
+
+    /**
+     * 分享信息到朋友
+     *
+     */
+    private void shareToWxFriend() {
+        Intent intent = new Intent();
+        ComponentName componentName = new ComponentName("com.tencent.mm", "com.tencent.mm.ui.tools.ShareImgUI");
+        intent.setComponent(componentName);
+        intent.setAction(Intent.ACTION_SEND);
+        intent.setType("text/*");
+        intent.putExtra(Intent.EXTRA_TEXT, "这是分享内容");
+        intent.putExtra(Intent.EXTRA_STREAM, "http://www.weixin.com");
+        startActivity(intent);
+    }
+
+    /**
+     * 分享信息到朋友圈
+     *
+     * @param file
+     *            ，假如图片的路径为path，那么file = new File(path);
+     */
+    private void shareToTimeLine(File file) {
+        Intent intent = new Intent();
+        ComponentName componentName = new ComponentName("com.tencent.mm", "com.tencent.mm.ui.tools.ShareToTimeLineUI");
+        intent.setComponent(componentName);
+
+        intent.setAction(Intent.ACTION_SEND);
+        intent.putExtra(Intent.EXTRA_STREAM, Uri.fromFile(file));
+
+        // intent.setAction(android.content.Intent.ACTION_SEND_MULTIPLE);
+        // ArrayList<Uri> uris = new ArrayList<Uri>();
+        // for (int i = 0; i < images.size(); i++) {
+        // Uri data = Uri.fromFile(new File(thumbPaths.get(i)));
+        // uris.add(data);
+        // }
+        // intent.putParcelableArrayListExtra(Intent.EXTRA_STREAM, uris);
+
+        intent.setType("image/*");
+
+        startActivity(intent);
     }
 }
