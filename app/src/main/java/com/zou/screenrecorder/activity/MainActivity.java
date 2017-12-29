@@ -13,11 +13,8 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.provider.Settings;
-import android.support.annotation.NonNull;
 import android.support.annotation.RequiresApi;
-import android.support.design.widget.BottomSheetBehavior;
 import android.support.v4.widget.DrawerLayout;
-import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.DefaultItemAnimator;
@@ -30,7 +27,6 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
-import android.widget.RelativeLayout;
 import android.widget.Toast;
 
 import com.zhy.m.permission.MPermissions;
@@ -234,12 +230,18 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * 分享和删除
+     * @param item
+     * @return
+     */
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         boolean[] isChecked = adapter.getIsChecked();
         int id= item.getItemId();
         switch (id){
             case R.id.action_share:
+                //分享
                 exitEditToolBar();
                 adapter.exitEdit();
                 ArrayList<String> pathList = new ArrayList<>();
@@ -249,14 +251,15 @@ public class MainActivity extends AppCompatActivity {
                     }
                 }
                 if(pathList.size()==1){
-                    Tools.shareImage(this, pathList.get(0));
+                    Tools.shareVideo(this, pathList.get(0));
                 }else if(pathList.size()>=1){
                     Toast.makeText(this,R.string.wechat_video_support_limit,Toast.LENGTH_SHORT).show();
-                    Tools.shareImages(this, pathList);
+                    Tools.shareVideos(this, pathList);
                 }
                 break;
 
             case R.id.action_delete:
+                //删除
                 //退出编辑模式
                 exitEditToolBar();
                 adapter.exitEditTmp();
@@ -405,62 +408,5 @@ public class MainActivity extends AppCompatActivity {
         }
         super.onBackPressed();
 
-    }
-
-    /**
-     * 分享到QQ好友
-     *
-     */
-    private void shareToQQFriend() {
-        Intent intent = new Intent();
-        ComponentName componentName = new ComponentName("com.tencent.mobileqq", "com.tencent.mobileqq.activity.JumpActivity");
-        intent.setComponent(componentName);
-        intent.setAction(Intent.ACTION_SEND);
-        intent.setType("text/*");
-        intent.putExtra(Intent.EXTRA_TEXT, "这是分享内容");
-        startActivity(intent);
-    }
-
-
-    /**
-     * 分享信息到朋友
-     *
-     */
-    private void shareToWxFriend() {
-        Intent intent = new Intent();
-        ComponentName componentName = new ComponentName("com.tencent.mm", "com.tencent.mm.ui.tools.ShareImgUI");
-        intent.setComponent(componentName);
-        intent.setAction(Intent.ACTION_SEND);
-        intent.setType("text/*");
-        intent.putExtra(Intent.EXTRA_TEXT, "这是分享内容");
-        intent.putExtra(Intent.EXTRA_STREAM, "http://www.weixin.com");
-        startActivity(intent);
-    }
-
-    /**
-     * 分享信息到朋友圈
-     *
-     * @param file
-     *            ，假如图片的路径为path，那么file = new File(path);
-     */
-    private void shareToTimeLine(File file) {
-        Intent intent = new Intent();
-        ComponentName componentName = new ComponentName("com.tencent.mm", "com.tencent.mm.ui.tools.ShareToTimeLineUI");
-        intent.setComponent(componentName);
-
-        intent.setAction(Intent.ACTION_SEND);
-        intent.putExtra(Intent.EXTRA_STREAM, Uri.fromFile(file));
-
-        // intent.setAction(android.content.Intent.ACTION_SEND_MULTIPLE);
-        // ArrayList<Uri> uris = new ArrayList<Uri>();
-        // for (int i = 0; i < images.size(); i++) {
-        // Uri data = Uri.fromFile(new File(thumbPaths.get(i)));
-        // uris.add(data);
-        // }
-        // intent.putParcelableArrayListExtra(Intent.EXTRA_STREAM, uris);
-
-        intent.setType("image/*");
-
-        startActivity(intent);
     }
 }

@@ -260,10 +260,6 @@ public class RecordsRecyclerAdapter extends RecyclerView.Adapter<RecordsRecycler
         observer.onChanged();
     }
 
-    public void onChanged(){
-//        observer.onChanged();
-    }
-
     public boolean[] getIsChecked(){
         return isChecked;
     }

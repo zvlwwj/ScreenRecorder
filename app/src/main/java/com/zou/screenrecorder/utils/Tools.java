@@ -133,7 +133,7 @@ public class Tools {
      * @param context 上下文
      * @param path    视频的路径
      */
-    public static void shareImage(Context context, String path) {
+    public static void shareVideo(Context context, String path) {
         //由文件得到uri
         Uri imageUri = getVideoContentUri(context,new File(path));
         Intent shareIntent = new Intent();
@@ -149,7 +149,7 @@ public class Tools {
      * @param context 上下文
      * @param paths   路径的集合
      */
-    public static void shareImages(Context context, List<String> paths) {
+    public static void shareVideos(Context context, List<String> paths) {
         ArrayList<Uri> uriList = new ArrayList<>();
         for (String path : paths) {
             uriList.add(getVideoContentUri(context,new File(path)));
