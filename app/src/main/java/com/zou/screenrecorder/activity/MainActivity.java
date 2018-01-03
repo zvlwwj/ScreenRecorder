@@ -3,6 +3,7 @@ package com.zou.screenrecorder.activity;
 import android.Manifest;
 import android.content.ComponentName;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.media.projection.MediaProjection;
@@ -16,6 +17,7 @@ import android.provider.Settings;
 import android.support.annotation.RequiresApi;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.GridLayoutManager;
@@ -44,7 +46,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Iterator;
 
-@RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
+@RequiresApi(api = Build.VERSION_CODES.M)
 public class MainActivity extends AppCompatActivity {
     private static final int REQUEST_CODE_FLOAT_PERMISSION = 100;
     private static final int REQUEST_CODE_SCREEN_CAPTURE = 101;
@@ -70,12 +72,31 @@ public class MainActivity extends AppCompatActivity {
         initData();
         initView();
         setListener();
-        requestFloatViewPermission();
+        showDialogForFloatView();
         /**
          *  开启服务
          */
         Intent intent = new Intent(MainActivity.this, RecordService.class);
         bindService(intent, connection, BIND_AUTO_CREATE);
+    }
+
+    /**
+     * 弹出需要悬浮窗权限的dialog
+     */
+    private void showDialogForFloatView() {
+        if(!Settings.canDrawOverlays(getApplicationContext())) {
+            new AlertDialog.Builder(MainActivity.this)
+                    .setTitle(getString(R.string.dialog_request_float_title))
+                    .setMessage(getString(R.string.dialog_request_float_content))
+                    .setPositiveButton(getString(R.string.dialog_ok), new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            requestFloatViewPermission();
+                        }
+                    })
+                    .setNegativeButton(getString(R.string.dialog_cancel), null)
+                    .show();
+        }
     }
 
 

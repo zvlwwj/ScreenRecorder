@@ -86,5 +86,9 @@
     <string name="delete">删除</string>
     <string name="wechat_video_support_limit">微信暂不支持多个视频同时分享！</string>
     <string name="record_stop">录制停止</string>
+    <string name="dialog_request_float_title">悬浮窗权限</string>
+    <string name="dialog_request_float_content">要实现屏幕录制功能需要悬浮窗权限，请设置允许。</string>
+    <string name="dialog_ok">去设置</string>
+    <string name="dialog_cancel">取消</string>
 
 </resources>
