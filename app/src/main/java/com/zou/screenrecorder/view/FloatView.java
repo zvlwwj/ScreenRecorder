@@ -3,26 +3,29 @@ package com.zou.screenrecorder.view;
 import android.content.Context;
 import android.graphics.Color;
 import android.graphics.PixelFormat;
+import android.graphics.drawable.AnimationDrawable;
+import android.os.Handler;
 import android.support.v7.widget.CardView;
-import android.util.AttributeSet;
 import android.view.GestureDetector;
 import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.WindowManager;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
+import android.view.animation.LinearInterpolator;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
-import android.widget.Toast;
 
 import com.zou.screenrecorder.R;
 import com.zou.screenrecorder.utils.FloatingManager;
+import com.zou.screenrecorder.utils.Tools;
 
 /**
  * Created by zou on 2017/12/7.
  */
 
-public class FloatView extends FrameLayout {
+public class FloatView extends CardView {
     private Context mContext,viewContext;
     private ImageView iv_display;
     private FloatingManager mWindowManager;
@@ -30,7 +33,10 @@ public class FloatView extends FrameLayout {
     private float initialTouchX,initialTouchY;
     private int initialX,initialY;
     private OnSingleTapListener onSingleTapListener;
-    private boolean eable;
+    private static final int WIDTH = 36;
+    private AnimationDrawable animationDrawableStart,animationDrawableStop;
+    private Handler handler;
+    private Animation rotateAnimation;
     public FloatView(Context context) {
         super(context);
         viewContext = context;
@@ -39,17 +45,62 @@ public class FloatView extends FrameLayout {
     }
 
     private void init() {
+        setCardElevation(10);
+        setRadius(Tools.dip2px(mContext,WIDTH/2));
         iv_display = new ImageView(viewContext);
-        LayoutParams lp = new LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT,ViewGroup.LayoutParams.WRAP_CONTENT);
+        LayoutParams lp = new LayoutParams(Tools.dip2px(mContext,WIDTH),Tools.dip2px(mContext,WIDTH));
         iv_display.setLayoutParams(lp);
         addView(iv_display);
-        iv_display.setImageResource(R.mipmap.icon_play);
+        iv_display.setImageResource(R.mipmap.frame_01);
         iv_display.setOnTouchListener(onTouchListener);
         mWindowManager = FloatingManager.getInstance(mContext);
+        handler = new Handler();
+        //动画初始化
+        rotateAnimation = AnimationUtils.loadAnimation(mContext,R.anim.anim_ratote);
+        rotateAnimation.setInterpolator(new LinearInterpolator());
     }
 
     public void setImageResource(int res){
         iv_display.setImageResource(res);
+    }
+
+    public void buttonClickGif(){
+        iv_display.clearAnimation();
+        iv_display.setImageResource(R.mipmap.frame_01);
+        iv_display.setAnimation(rotateAnimation);
+        rotateAnimation.start();
+
+    }
+
+    public void recordingGif(){
+        iv_display.clearAnimation();
+        iv_display.setImageResource(R.mipmap.frame_47);
+        iv_display.setAnimation(rotateAnimation);
+        rotateAnimation.start();
+        //预加载结束动画
+        iv_display.setImageResource(R.drawable.anim_reserve);
+        animationDrawableStop= (AnimationDrawable) iv_display.getDrawable();
+    }
+
+    public void startGif(){
+        iv_display.setImageResource(R.drawable.anim_start);
+        animationDrawableStart= (AnimationDrawable) iv_display.getDrawable();
+        animationDrawableStart.start();
+    }
+
+    public void stopGif(){
+
+        iv_display.clearAnimation();
+        animationDrawableStop.start();
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                iv_display.setImageResource(R.mipmap.frame_01);
+                //预加载开始动画
+                iv_display.setImageResource(R.drawable.anim_start);
+                animationDrawableStart= (AnimationDrawable) iv_display.getDrawable();
+            }
+        },750);
     }
 
     public void show(){
@@ -131,10 +182,6 @@ public class FloatView extends FrameLayout {
 
     public void setOnSingleTapListener(OnSingleTapListener onSingleTapListener){
         this.onSingleTapListener = onSingleTapListener;
-    }
-
-    public void eableClick(boolean eable){
-        this.eable = eable;
     }
 
     public interface OnSingleTapListener{

@@ -14,6 +14,7 @@ import android.media.projection.MediaProjection;
 import android.os.Binder;
 import android.os.Build;
 import android.os.Environment;
+import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.IBinder;
 import android.os.SystemClock;
@@ -44,6 +45,9 @@ public class RecordService extends Service {
     private ImageReader mImageReader;
     //这里截屏图片和录像共用一个文件名（不包含后缀），但是在不同的文件夹中
     private String fileName;
+    private RecordCallBack recordCallBack;
+    private Handler handler;
+
 
 
     @Override
@@ -64,6 +68,7 @@ public class RecordService extends Service {
         serviceThread.start();
         running = false;
         mediaRecorder = new MediaRecorder();
+        handler = new Handler();
     }
 
     @Override
@@ -85,15 +90,34 @@ public class RecordService extends Service {
         this.dpi = dpi;
     }
 
+    public void setRecordCallBack(RecordCallBack recordCallBack){
+        this.recordCallBack = recordCallBack;
+    }
+
     public boolean startRecord() {
+
         if (mediaProjection == null || running) {
             return false;
         }
-        initRecorder();
-        createVirtualDisplay();
-        mediaRecorder.start();
-        captureScreen();
-        running = true;
+        new Thread(){
+            @Override
+            public void run() {
+                initRecorder();
+                createVirtualDisplay();
+                mediaRecorder.start();
+                captureScreen();
+                running = true;
+                if(recordCallBack!=null){
+                    handler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            recordCallBack.onStart();
+                        }
+                    });
+                }
+            }
+        }.start();
+
         return true;
     }
 
@@ -104,11 +128,25 @@ public class RecordService extends Service {
         if (!running) {
             return false;
         }
-        running = false;
-        mediaRecorder.stop();
-        mediaRecorder.reset();
-        recordVirtualDisplay.release();
-        mediaProjection.stop();
+        new Thread() {
+            @Override
+            public void run() {
+                running = false;
+                mediaRecorder.stop();
+                mediaRecorder.reset();
+                recordVirtualDisplay.release();
+                mediaProjection.stop();
+                if (recordCallBack != null) {
+                    handler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            recordCallBack.onStop();
+                        }
+                    });
+                }
+            }
+        }.start();
+
         return true;
     }
 
@@ -188,5 +226,10 @@ public class RecordService extends Service {
         public RecordService getRecordService() {
             return RecordService.this;
         }
+    }
+
+    public interface RecordCallBack{
+        void onStart();
+        void onStop();
     }
 }

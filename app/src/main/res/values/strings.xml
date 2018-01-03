@@ -85,5 +85,6 @@
     <string name="share">分享</string>
     <string name="delete">删除</string>
     <string name="wechat_video_support_limit">微信暂不支持多个视频同时分享！</string>
+    <string name="record_stop">录制停止</string>
 
 </resources>

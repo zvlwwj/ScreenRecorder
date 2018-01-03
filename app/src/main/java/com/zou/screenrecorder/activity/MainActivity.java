@@ -155,14 +155,17 @@ public class MainActivity extends AppCompatActivity {
             public void onSingleTap() {
                 if(recordService== null){
                     //请求屏幕录制的权限
+                    floatView.buttonClickGif();
                     requestRecordPermission();
                 }else {
                     if (recordService.isRunning()) {
                         //停止录制
                         recordService.stopRecord();
-                        floatView.setImageResource(R.mipmap.icon_play);
+//                        floatView.setImageResource(R.mipmap.icon_play);
+                        floatView.stopGif();
                         refresh();
                     } else {
+                        floatView.buttonClickGif();
                         requestRecordPermission();
                     }
                 }
@@ -355,7 +358,7 @@ public class MainActivity extends AppCompatActivity {
      */
 
     @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+    protected void onActivityResult(int requestCode, final int resultCode, final Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         switch (requestCode){
             case REQUEST_CODE_FLOAT_PERMISSION :
@@ -366,11 +369,12 @@ public class MainActivity extends AppCompatActivity {
                 }
                 break;
             case REQUEST_CODE_SCREEN_CAPTURE:
-                if(resultCode == RESULT_OK){
+                if(resultCode == RESULT_OK) {
                     mediaProjection = projectionManager.getMediaProjection(resultCode, data);
                     recordService.setMediaProject(mediaProjection);
                     recordService.startRecord();
-                    floatView.setImageResource(R.mipmap.icon_stop);
+                    floatView.startGif();
+//                    floatView.setImageResource(R.mipmap.icon_stop);
                 }
                 break;
         }
@@ -385,7 +389,25 @@ public class MainActivity extends AppCompatActivity {
             recordService = binder.getRecordService();
             floatView.setEnabled(true);
             recordService.setConfig(metrics.widthPixels, metrics.heightPixels, metrics.densityDpi);
-            floatView.setImageResource(recordService.isRunning() ? R.mipmap.icon_stop : R.mipmap.icon_play);
+            recordService.setRecordCallBack(new RecordService.RecordCallBack() {
+                @Override
+                public void onStart() {
+                    floatView.recordingGif();
+                }
+
+                @Override
+                public void onStop() {
+                    floatView.stopGif();
+                    Toast.makeText(context,R.string.record_stop,Toast.LENGTH_SHORT).show();
+                }
+            });
+//            floatView.setImageResource(recordService.isRunning() ? R.mipmap.icon_stop : R.mipmap.icon_play);
+//            if(recordService.isRunning()){
+//                floatView.recordingGif();
+//            }else{
+//                floatView.stopGif();
+//                Toast.makeText(context,R.string.record_stop,Toast.LENGTH_SHORT).show();
+//            }
         }
 
         @Override
