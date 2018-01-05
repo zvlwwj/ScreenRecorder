@@ -1,10 +1,8 @@
 package com.zou.screenrecorder.adapter;
 
-import android.animation.ValueAnimator;
 import android.content.Context;
 import android.media.MediaPlayer;
 import android.os.Build;
-import android.os.SystemClock;
 import android.support.annotation.RequiresApi;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -19,8 +17,6 @@ import com.bumptech.glide.Glide;
 import com.zou.screenrecorder.R;
 import com.zou.screenrecorder.bean.RecordSourceBean;
 import com.zou.screenrecorder.utils.Tools;
-
-import org.greenrobot.eventbus.EventBus;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -105,10 +101,14 @@ public class RecordsRecyclerAdapter extends RecyclerView.Adapter<RecordsRecycler
                         isChecked[position] = !isChecked[position];
                         if(isChecked[position]) {
                             holder.iv_item_records.animate().scaleX(0.9f).scaleY(0.9f).setDuration(300).start();
+                            holder.view_back.animate().scaleX(0.9f).scaleY(0.9f).setDuration(300).start();
+                            holder.tv_item_duration.animate().translationY(Tools.dip2px(context,-16)).setDuration(300).start();
                             holder.iv_item_check.setSelected(true);
                             Log.i(TAG,"adapter isChecked :"+position);
                         }else{
                             holder.iv_item_records.animate().scaleX(1f).scaleY(1f).setDuration(300).start();
+                            holder.view_back.animate().scaleX(1f).scaleY(1f).setDuration(300).start();
+                            holder.tv_item_duration.animate().translationY(Tools.dip2px(context,0)).setDuration(300).start();
                             holder.iv_item_check.setSelected(false);
                         }
                     }else {
@@ -149,18 +149,23 @@ public class RecordsRecyclerAdapter extends RecyclerView.Adapter<RecordsRecycler
      *处理ViewHolder的初始化操作
      */
     private void handleView(final ViewHolder holder, RecordSourceBean recordSourceBean,int position) {
+        holder.view_back.setLayoutParams(new FrameLayout.LayoutParams(Tools.getScreenWidth(context)/2-Tools.dip2px(context,16),Tools.getScreenHeight(context)/2-Tools.dip2px(context,16)));
         //TODO 更换loading图！
-        holder.iv_item_records.setImageResource(R.mipmap.bg_load);
-        if(isEdit) {
+        holder.iv_item_records.setImageResource(R.mipmap.bg_load);if(isEdit) {
             //进入编辑模式
             holder.iv_item_check.setVisibility(View.VISIBLE);
             if(isChecked[position]){
                 holder.iv_item_records.animate().scaleX(0.9f).scaleY(0.9f).setDuration(300).start();
+                holder.view_back.animate().scaleX(0.9f).scaleY(0.9f).setDuration(300).start();
+                holder.tv_item_duration.animate().translationY(Tools.dip2px(context,-16)).setDuration(300).start();
                 holder.iv_item_check.setSelected(true);
 //                isChecked[position] = true;
             }else{
                 holder.iv_item_records.setScaleX(1f);
                 holder.iv_item_records.setScaleY(1f);
+                holder.view_back.setScaleX(1f);
+                holder.view_back.setScaleY(1f);
+                holder.tv_item_duration.setTranslationY(0);
                 holder.iv_item_check.setSelected(false);
             }
         }else{
@@ -168,14 +173,20 @@ public class RecordsRecyclerAdapter extends RecyclerView.Adapter<RecordsRecycler
             holder.iv_item_check.setVisibility(View.GONE);
             if(isChecked[position]){
                 holder.iv_item_records.animate().scaleX(1f).scaleY(1f).setDuration(300).start();
+                holder.view_back.animate().scaleX(1f).scaleY(1f).setDuration(300).start();
+                holder.tv_item_duration.animate().translationY(Tools.dip2px(context,0)).setDuration(300).start();
             }else{
                 holder.iv_item_records.setScaleX(1f);
                 holder.iv_item_records.setScaleY(1f);
+                holder.view_back.setScaleX(1f);
+                holder.view_back.setScaleY(1f);
+                holder.tv_item_duration.setTranslationY(0);
             }
             holder.iv_item_check.setSelected(false);
             isChecked[position] = false;
         }
         holder.iv_item_records.setLayoutParams(new FrameLayout.LayoutParams(Tools.getScreenWidth(context)/2-Tools.dip2px(context,16),Tools.getScreenHeight(context)/2-Tools.dip2px(context,16)));
+
         Glide.with(context).load(recordSourceBean.getImageFilePath()).into(holder.iv_item_records);
         Observable.just(recordSourceBean)
                 .subscribeOn(Schedulers.io())//订阅操作在io线程中
@@ -226,12 +237,14 @@ public class RecordsRecyclerAdapter extends RecyclerView.Adapter<RecordsRecycler
         ImageView iv_item_records;
         ImageView iv_item_check;
         TextView tv_item_duration;
+        View view_back;
 
         public ViewHolder(View itemView) {
             super(itemView);
             iv_item_records = (ImageView) itemView.findViewById(R.id.iv_item_records);
             iv_item_check = (ImageView) itemView.findViewById(R.id.iv_item_check);
             tv_item_duration = (TextView) itemView.findViewById(R.id.tv_item_duration);
+            view_back = itemView.findViewById(R.id.view_back);
         }
     }
 

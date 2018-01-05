@@ -21,6 +21,8 @@ import com.zou.screenrecorder.R;
 import com.zou.screenrecorder.utils.FloatingManager;
 import com.zou.screenrecorder.utils.Tools;
 
+import java.lang.reflect.Field;
+
 /**
  * Created by zou on 2017/12/7.
  */
@@ -65,14 +67,15 @@ public class FloatView extends CardView {
     }
 
     public void buttonClickGif(){
+        setEnabled(false);
         iv_display.clearAnimation();
         iv_display.setImageResource(R.mipmap.frame_01);
         iv_display.setAnimation(rotateAnimation);
         rotateAnimation.start();
-
     }
 
     public void recordingGif(){
+        setEnabled(true);
         iv_display.clearAnimation();
         iv_display.setImageResource(R.mipmap.frame_47);
         iv_display.setAnimation(rotateAnimation);
@@ -89,7 +92,6 @@ public class FloatView extends CardView {
     }
 
     public void stopGif(){
-
         iv_display.clearAnimation();
         animationDrawableStop.start();
         handler.postDelayed(new Runnable() {
@@ -111,8 +113,8 @@ public class FloatView extends CardView {
         //总是出现在应用程序窗口之上
         mParams.type = WindowManager.LayoutParams.TYPE_SYSTEM_ALERT;
         //设置图片格式，效果为背景透明
-        mParams.format = PixelFormat.RGBA_8888;
-        mParams.flags = WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE | WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL | WindowManager.LayoutParams.FLAG_LAYOUT_INSET_DECOR |WindowManager.LayoutParams.FLAG_SECURE;
+        mParams.format = PixelFormat.TRANSLUCENT;
+        mParams.flags = WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE | WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL | WindowManager.LayoutParams.FLAG_LAYOUT_INSET_DECOR;
         mParams.width = LayoutParams.WRAP_CONTENT;
         mParams.height = LayoutParams.WRAP_CONTENT;
         mWindowManager.addView(this, mParams);
@@ -135,8 +137,8 @@ public class FloatView extends CardView {
 
         @Override
         public boolean onSingleTapUp(MotionEvent e) {
-            if(onSingleTapListener != null ){
-                onSingleTapListener.onSingleTap();
+            if(onSingleTapListener != null && isEnabled()){
+                onSingleTapListener.onSingleTap(FloatView.this);
             }
             return true;
         }
@@ -185,6 +187,6 @@ public class FloatView extends CardView {
     }
 
     public interface OnSingleTapListener{
-        void onSingleTap();
+        void onSingleTap(View v);
     }
 }

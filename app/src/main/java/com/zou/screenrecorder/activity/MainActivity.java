@@ -36,11 +36,16 @@ import com.zhy.m.permission.PermissionDenied;
 import com.zhy.m.permission.PermissionGrant;
 import com.zou.screenrecorder.R;
 import com.zou.screenrecorder.adapter.RecordsRecyclerAdapter;
+import com.zou.screenrecorder.bean.MessageEvent;
 import com.zou.screenrecorder.bean.RecordSourceBean;
 import com.zou.screenrecorder.service.RecordService;
 import com.zou.screenrecorder.utils.Constant;
 import com.zou.screenrecorder.utils.Tools;
 import com.zou.screenrecorder.view.FloatView;
+
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -65,20 +70,52 @@ public class MainActivity extends AppCompatActivity {
     private ActionBarDrawerToggle toggle;
     private MenuItem menuItemShare,menuItemDelete;
     private Handler handler;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        EventBus.getDefault().register(this);
         initData();
         initView();
         setListener();
         showDialogForFloatView();
-        /**
-         *  开启服务
-         */
-        Intent intent = new Intent(MainActivity.this, RecordService.class);
-        bindService(intent, connection, BIND_AUTO_CREATE);
+//        /**
+//         *  开启服务
+//         */
+//        Intent intent = new Intent(MainActivity.this, RecordService.class);
+//        bindService(intent, connection, BIND_AUTO_CREATE);
     }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+    }
+
+    @Override
+    protected void onRestart() {
+        super.onRestart();
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onRecordCallBack(MessageEvent msg){
+        switch (msg.getMsg()){
+            case Constant.EVENT_BUS_ON_SERVICE_CONNTECTED:
+                floatView.setEnabled(true);
+                break;
+            case Constant.EVENT_BUS_ON_CAPTURE_PERMISSION_OK:
+                floatView.startGif();
+                break;
+            case Constant.EVENT_BUS_ON_RECORD_START:
+                floatView.setEnabled(true);
+                break;
+            case Constant.EVENT_BUS_ON_RECORD_STOP:
+                floatView.stopGif();
+                Toast.makeText(context,R.string.record_stop,Toast.LENGTH_SHORT).show();
+                break;
+        }
+    }
+
 
     /**
      * 弹出需要悬浮窗权限的dialog
@@ -137,7 +174,7 @@ public class MainActivity extends AppCompatActivity {
     private void initView() {
         btn_start = (Button) findViewById(R.id.button);
         floatView = new FloatView(context);
-        floatView.setEnabled(false);
+//        floatView.setEnabled(false);
         toolbar = (Toolbar) findViewById(R.id.toolbar_main);
         setSupportActionBar(toolbar);
         drawer = (DrawerLayout) findViewById(R.id.main_drawer_layout);
@@ -150,14 +187,12 @@ public class MainActivity extends AppCompatActivity {
         recycler_records.setLayoutManager(mgr);
         recycler_records.setAdapter(adapter);
         recycler_records.setItemAnimator(new DefaultItemAnimator(){
+
             @Override
-            public void onMoveFinished(RecyclerView.ViewHolder item) {
-                handler.postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        adapter.notifyDataSetChanged();
-                    }
-                },400);
+            public void onRemoveStarting(RecyclerView.ViewHolder item) {
+                //TODO 移除的动画仍然不完善
+                adapter.notifyDataSetChanged();
+                super.onRemoveStarting(item);
             }
         });
     }
@@ -173,7 +208,8 @@ public class MainActivity extends AppCompatActivity {
         });
         floatView.setOnSingleTapListener(new FloatView.OnSingleTapListener() {
             @Override
-            public void onSingleTap() {
+            public void onSingleTap(View view) {
+                Log.i(TAG,"onSingleTap");
                 if(recordService== null){
                     //请求屏幕录制的权限
                     floatView.buttonClickGif();
@@ -181,8 +217,9 @@ public class MainActivity extends AppCompatActivity {
                 }else {
                     if (recordService.isRunning()) {
                         //停止录制
+                        floatView.setEnabled(false);
                         recordService.stopRecord();
-//                        floatView.setImageResource(R.mipmap.icon_play);
+                        floatView.setEnabled(true);
                         floatView.stopGif();
                         refresh();
                     } else {
@@ -297,8 +334,8 @@ public class MainActivity extends AppCompatActivity {
                     }
                 }
                 int i=0;
-                for(Iterator<RecordSourceBean> iterator = recordSourceBeans.iterator() ;iterator.hasNext();i++){
-                    RecordSourceBean recordSourceBean = iterator.next();
+                for( Iterator<RecordSourceBean> iterator = recordSourceBeans.iterator(); iterator.hasNext(); i++){
+                     RecordSourceBean recordSourceBean = iterator.next();
                     if(recordSourceBean.isTmpDelete()){
                         File image = new File(recordSourceBean.getImageFilePath());
                         File record = new File(recordSourceBean.getRecordFilePath());
@@ -332,8 +369,9 @@ public class MainActivity extends AppCompatActivity {
      */
     @PermissionGrant(4)
     public void requestRecordSuccess(){
-        Intent captureIntent = projectionManager.createScreenCaptureIntent();
-        startActivityForResult(captureIntent, REQUEST_CODE_SCREEN_CAPTURE);
+        startActivity(new Intent(MainActivity.this,CapturePermissionRequestActivity.class));
+//        Intent captureIntent = projectionManager.createScreenCaptureIntent();
+//        startActivityForResult(captureIntent, REQUEST_CODE_SCREEN_CAPTURE);
     }
 
     /**
@@ -386,11 +424,13 @@ public class MainActivity extends AppCompatActivity {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                     if (Settings.canDrawOverlays(getApplicationContext())) {
                         floatView.show();
+                        requestRecordPermission();
                     }
                 }
                 break;
             case REQUEST_CODE_SCREEN_CAPTURE:
                 if(resultCode == RESULT_OK) {
+                    moveTaskToBack(true);
                     mediaProjection = projectionManager.getMediaProjection(resultCode, data);
                     recordService.setMediaProject(mediaProjection);
                     recordService.startRecord();
@@ -422,13 +462,6 @@ public class MainActivity extends AppCompatActivity {
                     Toast.makeText(context,R.string.record_stop,Toast.LENGTH_SHORT).show();
                 }
             });
-//            floatView.setImageResource(recordService.isRunning() ? R.mipmap.icon_stop : R.mipmap.icon_play);
-//            if(recordService.isRunning()){
-//                floatView.recordingGif();
-//            }else{
-//                floatView.stopGif();
-//                Toast.makeText(context,R.string.record_stop,Toast.LENGTH_SHORT).show();
-//            }
         }
 
         @Override
@@ -438,7 +471,8 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        unbindService(connection);
+        EventBus.getDefault().unregister(this);
+//        unbindService(connection);
     }
 
     @Override

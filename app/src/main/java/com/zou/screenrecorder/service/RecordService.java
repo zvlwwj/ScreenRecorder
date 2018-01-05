@@ -1,7 +1,6 @@
 package com.zou.screenrecorder.service;
 
 import android.app.Service;
-import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.PixelFormat;
@@ -13,14 +12,12 @@ import android.media.MediaRecorder;
 import android.media.projection.MediaProjection;
 import android.os.Binder;
 import android.os.Build;
-import android.os.Environment;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.IBinder;
 import android.os.SystemClock;
 import android.support.annotation.RequiresApi;
 import android.util.Log;
-import android.widget.Toast;
 
 import com.zou.screenrecorder.utils.Tools;
 
@@ -94,8 +91,11 @@ public class RecordService extends Service {
         this.recordCallBack = recordCallBack;
     }
 
+    /**
+     * 开始录制
+     * @return
+     */
     public boolean startRecord() {
-
         if (mediaProjection == null || running) {
             return false;
         }
@@ -122,8 +122,10 @@ public class RecordService extends Service {
     }
 
 
-
-
+    /**
+     * 停止录制
+     * @return
+     */
     public boolean stopRecord() {
         if (!running) {
             return false;
@@ -150,6 +152,9 @@ public class RecordService extends Service {
         return true;
     }
 
+    /**
+     * 创建虚拟屏幕
+     */
     private void createVirtualDisplay() {
         mImageReader = ImageReader.newInstance(width, height, PixelFormat.RGBA_8888, 1);
         if(mImageReader!=null){
@@ -161,7 +166,11 @@ public class RecordService extends Service {
                 DisplayManager.VIRTUAL_DISPLAY_FLAG_AUTO_MIRROR, mImageReader.getSurface(), null, null);
     }
 
+    /**
+     * 初始化录制
+     */
     private void initRecorder() {
+        try {
         DateFormat dateFormat = new SimpleDateFormat("MMddyyyyHHmmss");
         fileName = dateFormat.format(new java.util.Date());
         mediaRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
@@ -173,9 +182,8 @@ public class RecordService extends Service {
         mediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
         mediaRecorder.setVideoEncodingBitRate(24 * 1024 * 1024);
         mediaRecorder.setVideoFrameRate(30);
-        try {
-            mediaRecorder.prepare();
-        } catch (IOException e) {
+        mediaRecorder.prepare();
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
