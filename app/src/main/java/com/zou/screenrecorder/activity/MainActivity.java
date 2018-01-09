@@ -1,10 +1,13 @@
 package com.zou.screenrecorder.activity;
+import android.Manifest;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
+import android.support.annotation.NonNull;
 import android.support.annotation.RequiresApi;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
@@ -21,6 +24,9 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
 
+import com.zhy.m.permission.MPermissions;
+import com.zhy.m.permission.PermissionDenied;
+import com.zhy.m.permission.PermissionGrant;
 import com.zou.screenrecorder.R;
 import com.zou.screenrecorder.adapter.RecordsRecyclerAdapter;
 import com.zou.screenrecorder.bean.RecordSourceBean;
@@ -48,10 +54,32 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        MPermissions.requestPermissions(MainActivity.this, 3, Manifest.permission.READ_EXTERNAL_STORAGE);
+    }
+
+    /**
+     * 权限请求成功
+     */
+    @PermissionGrant(3)
+    public void requestPermissSuccess(){
         initData();
         initView();
         setListener();
         showDialogForFloatView();
+    }
+
+    /**
+     * 权限请求失败
+     */
+    @PermissionDenied(3)
+    public void requestPermissFail(){
+        finish();
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        MPermissions.onRequestPermissionsResult(this, requestCode, permissions, grantResults);
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
     }
 
     @Override
@@ -105,8 +133,7 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
         File file = new File(recordDirectory);
-
-        if(file.list()!=null&&file.list().length>0) {
+        if(file.isDirectory()&&file.list()!=null&&file.list().length>0) {
             for (int i=0 ;i<file.list().length;i++) {
                 String string = file.list()[i];
                 String recordPath = recordDirectory+string;

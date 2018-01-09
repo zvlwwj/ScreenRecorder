@@ -7,6 +7,7 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.content.pm.PackageManager;
 import android.media.projection.MediaProjection;
 import android.media.projection.MediaProjectionManager;
 import android.os.Build;
@@ -33,7 +34,7 @@ import com.zou.screenrecorder.view.FloatView;
 /**
  * Created by zou on 2018/1/5.
  */
-@RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
+@RequiresApi(api = Build.VERSION_CODES.M)
 public class CapturePermissionRequestActivity extends Activity {
     private static final String TAG = "PermissionActivity";
     private MediaProjectionManager projectionManager;
