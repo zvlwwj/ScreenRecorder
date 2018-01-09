@@ -1,18 +1,10 @@
 package com.zou.screenrecorder.activity;
-
-import android.Manifest;
-import android.content.ComponentName;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.ServiceConnection;
-import android.media.projection.MediaProjection;
-import android.media.projection.MediaProjectionManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.IBinder;
 import android.provider.Settings;
 import android.support.annotation.RequiresApi;
 import android.support.v4.widget.DrawerLayout;
@@ -23,7 +15,6 @@ import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
-import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -32,21 +23,11 @@ import android.widget.Button;
 import android.widget.Toast;
 
 import com.zhy.m.permission.MPermissions;
-import com.zhy.m.permission.PermissionDenied;
-import com.zhy.m.permission.PermissionGrant;
 import com.zou.screenrecorder.R;
 import com.zou.screenrecorder.adapter.RecordsRecyclerAdapter;
-import com.zou.screenrecorder.bean.MessageEvent;
 import com.zou.screenrecorder.bean.RecordSourceBean;
-import com.zou.screenrecorder.service.RecordService;
 import com.zou.screenrecorder.utils.Constant;
 import com.zou.screenrecorder.utils.Tools;
-import com.zou.screenrecorder.view.FloatView;
-
-import org.greenrobot.eventbus.EventBus;
-import org.greenrobot.eventbus.Subscribe;
-import org.greenrobot.eventbus.ThreadMode;
-
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -54,14 +35,8 @@ import java.util.Iterator;
 @RequiresApi(api = Build.VERSION_CODES.M)
 public class MainActivity extends AppCompatActivity {
     private static final int REQUEST_CODE_FLOAT_PERMISSION = 100;
-    private static final int REQUEST_CODE_SCREEN_CAPTURE = 101;
     private static final String TAG = "MainActivity";
-    private Context context;
     private Button btn_start;
-    private FloatView floatView;
-    private MediaProjectionManager projectionManager;
-    private MediaProjection mediaProjection;
-    private RecordService recordService;
     private RecyclerView recycler_records;
     private RecordsRecyclerAdapter adapter;
     private ArrayList<RecordSourceBean> recordSourceBeans;
@@ -69,22 +44,16 @@ public class MainActivity extends AppCompatActivity {
     private DrawerLayout drawer;
     private ActionBarDrawerToggle toggle;
     private MenuItem menuItemShare,menuItemDelete;
-    private Handler handler;
+    private AlertDialog alertDialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        EventBus.getDefault().register(this);
         initData();
         initView();
         setListener();
         showDialogForFloatView();
-//        /**
-//         *  开启服务
-//         */
-//        Intent intent = new Intent(MainActivity.this, RecordService.class);
-//        bindService(intent, connection, BIND_AUTO_CREATE);
     }
 
     @Override
@@ -97,50 +66,30 @@ public class MainActivity extends AppCompatActivity {
         super.onRestart();
     }
 
-    @Subscribe(threadMode = ThreadMode.MAIN)
-    public void onRecordCallBack(MessageEvent msg){
-        switch (msg.getMsg()){
-            case Constant.EVENT_BUS_ON_SERVICE_CONNTECTED:
-                floatView.setEnabled(true);
-                break;
-            case Constant.EVENT_BUS_ON_CAPTURE_PERMISSION_OK:
-                floatView.startGif();
-                break;
-            case Constant.EVENT_BUS_ON_RECORD_START:
-                floatView.setEnabled(true);
-                break;
-            case Constant.EVENT_BUS_ON_RECORD_STOP:
-                floatView.stopGif();
-                Toast.makeText(context,R.string.record_stop,Toast.LENGTH_SHORT).show();
-                break;
-        }
-    }
-
 
     /**
      * 弹出需要悬浮窗权限的dialog
      */
     private void showDialogForFloatView() {
         if(!Settings.canDrawOverlays(getApplicationContext())) {
-            new AlertDialog.Builder(MainActivity.this)
+            alertDialog = new AlertDialog.Builder(MainActivity.this)
                     .setTitle(getString(R.string.dialog_request_float_title))
                     .setMessage(getString(R.string.dialog_request_float_content))
                     .setPositiveButton(getString(R.string.dialog_ok), new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
+                            alertDialog.dismiss();
                             requestFloatViewPermission();
                         }
                     })
                     .setNegativeButton(getString(R.string.dialog_cancel), null)
+                    .setCancelable(false)
                     .show();
         }
     }
 
 
     private void initData() {
-        projectionManager = (MediaProjectionManager) getSystemService(MEDIA_PROJECTION_SERVICE);
-        context = getApplicationContext();
-        handler = new Handler();
         getRecordSourceBeans();
     }
 
@@ -173,8 +122,6 @@ public class MainActivity extends AppCompatActivity {
      */
     private void initView() {
         btn_start = (Button) findViewById(R.id.button);
-        floatView = new FloatView(context);
-//        floatView.setEnabled(false);
         toolbar = (Toolbar) findViewById(R.id.toolbar_main);
         setSupportActionBar(toolbar);
         drawer = (DrawerLayout) findViewById(R.id.main_drawer_layout);
@@ -201,31 +148,11 @@ public class MainActivity extends AppCompatActivity {
         btn_start.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                showFloatWindow();
-                //将Activity切换到后台
-                moveTaskToBack(true);
-            }
-        });
-        floatView.setOnSingleTapListener(new FloatView.OnSingleTapListener() {
-            @Override
-            public void onSingleTap(View view) {
-                Log.i(TAG,"onSingleTap");
-                if(recordService== null){
-                    //请求屏幕录制的权限
-                    floatView.buttonClickGif();
-                    requestRecordPermission();
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M&&!Settings.canDrawOverlays(getApplicationContext())) {
+                    showDialogForFloatView();
                 }else {
-                    if (recordService.isRunning()) {
-                        //停止录制
-                        floatView.setEnabled(false);
-                        recordService.stopRecord();
-                        floatView.setEnabled(true);
-                        floatView.stopGif();
-                        refresh();
-                    } else {
-                        floatView.buttonClickGif();
-                        requestRecordPermission();
-                    }
+                    startActivity(new Intent(MainActivity.this, CapturePermissionRequestActivity.class));
+                    moveTaskToBack(true);
                 }
             }
         });
@@ -255,7 +182,6 @@ public class MainActivity extends AppCompatActivity {
     private void editToolBar() {
         toolbar.setTitle(R.string.edit);
         showActionView();
-//        toolbar.setMenu();
     }
 
     /**
@@ -351,38 +277,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /**
-     * 请求屏幕录制的权限
-     */
-    private void requestRecordPermission(){
-        MPermissions.requestPermissions(MainActivity.this, 4, Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.RECORD_AUDIO);
-    }
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults)
-    {
-        MPermissions.onRequestPermissionsResult(this, requestCode, permissions, grantResults);
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-    }
-
-    /**
-     * 权限请求成功
-     */
-    @PermissionGrant(4)
-    public void requestRecordSuccess(){
-        startActivity(new Intent(MainActivity.this,CapturePermissionRequestActivity.class));
-//        Intent captureIntent = projectionManager.createScreenCaptureIntent();
-//        startActivityForResult(captureIntent, REQUEST_CODE_SCREEN_CAPTURE);
-    }
-
-    /**
-     * 权限请求失败
-     */
-    @PermissionDenied(4)
-    public void requestRecordFailed(){
-        Toast.makeText(this,R.string.request_permission,Toast.LENGTH_SHORT).show();
-    }
-
-    /**
      * 请求悬浮窗的权限
      */
     private void requestFloatViewPermission() {
@@ -395,84 +289,9 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    /**
-     * 显示悬浮窗
-     */
-    private void showFloatWindow(){
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            if(Settings.canDrawOverlays(getApplicationContext())) {
-                floatView.show();
-            }
-        }else{
-            floatView.show();
-        }
-    }
-
-    /**
-     * 请求悬浮窗权限返回 REQUEST_CODE_FLOAT_PERMISSION
-     * 屏幕捕捉请求 REQUEST_CODE_SCREEN_CAPTURE
-     * @param requestCode
-     * @param resultCode
-     * @param data
-     */
-
-    @Override
-    protected void onActivityResult(int requestCode, final int resultCode, final Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        switch (requestCode){
-            case REQUEST_CODE_FLOAT_PERMISSION :
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                    if (Settings.canDrawOverlays(getApplicationContext())) {
-                        floatView.show();
-                        requestRecordPermission();
-                    }
-                }
-                break;
-            case REQUEST_CODE_SCREEN_CAPTURE:
-                if(resultCode == RESULT_OK) {
-                    moveTaskToBack(true);
-                    mediaProjection = projectionManager.getMediaProjection(resultCode, data);
-                    recordService.setMediaProject(mediaProjection);
-                    recordService.startRecord();
-                    floatView.startGif();
-//                    floatView.setImageResource(R.mipmap.icon_stop);
-                }
-                break;
-        }
-    }
-
-    private ServiceConnection connection = new ServiceConnection() {
-        @Override
-        public void onServiceConnected(ComponentName className, IBinder service) {
-            DisplayMetrics metrics = new DisplayMetrics();
-            getWindowManager().getDefaultDisplay().getMetrics(metrics);
-            RecordService.RecordBinder binder = (RecordService.RecordBinder) service;
-            recordService = binder.getRecordService();
-            floatView.setEnabled(true);
-            recordService.setConfig(metrics.widthPixels, metrics.heightPixels, metrics.densityDpi);
-            recordService.setRecordCallBack(new RecordService.RecordCallBack() {
-                @Override
-                public void onStart() {
-                    floatView.recordingGif();
-                }
-
-                @Override
-                public void onStop() {
-                    floatView.stopGif();
-                    Toast.makeText(context,R.string.record_stop,Toast.LENGTH_SHORT).show();
-                }
-            });
-        }
-
-        @Override
-        public void onServiceDisconnected(ComponentName arg0) {}
-    };
-
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        EventBus.getDefault().unregister(this);
-//        unbindService(connection);
     }
 
     @Override

@@ -1,8 +1,11 @@
 package com.zou.screenrecorder.adapter;
 
 import android.content.Context;
+import android.graphics.Bitmap;
 import android.media.MediaPlayer;
+import android.media.ThumbnailUtils;
 import android.os.Build;
+import android.provider.MediaStore;
 import android.support.annotation.RequiresApi;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -18,6 +21,9 @@ import com.zou.screenrecorder.R;
 import com.zou.screenrecorder.bean.RecordSourceBean;
 import com.zou.screenrecorder.utils.Tools;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -186,19 +192,30 @@ public class RecordsRecyclerAdapter extends RecyclerView.Adapter<RecordsRecycler
             isChecked[position] = false;
         }
         holder.iv_item_records.setLayoutParams(new FrameLayout.LayoutParams(Tools.getScreenWidth(context)/2-Tools.dip2px(context,16),Tools.getScreenHeight(context)/2-Tools.dip2px(context,16)));
-
-        Glide.with(context).load(recordSourceBean.getImageFilePath()).into(holder.iv_item_records);
+        File file = new File(recordSourceBean.getImageFilePath());
+        if(file.exists()) {
+            Glide.with(context).load(recordSourceBean.getImageFilePath()).into(holder.iv_item_records);
+        }
         Observable.just(recordSourceBean)
                 .subscribeOn(Schedulers.io())//订阅操作在io线程中
                 .observeOn(AndroidSchedulers.mainThread())//回调在主线程中
                 .map(new Func1<RecordSourceBean, String>() {
                     @Override
                     public String call(RecordSourceBean recordSourceBean) {
-                        //获取录像的缩略图
-//                        RecordBean recordBean= new RecordBean();
-//                        Bitmap bm = ThumbnailUtils.createVideoThumbnail(s,FULL_SCREEN_KIND);
-//                        bm = ThumbnailUtils.extractThumbnail(bm, Tools.getScreenWidth(context)/2, Tools.getScreenHeight(context)/2);
-//                        recordBean.setBm(bm);
+                        //若缓存不存在获取录像的缩略图
+                        try {
+                            File file = new File(recordSourceBean.getImageFilePath());
+                            if(!file.exists()){
+                                FileOutputStream fileOutputStream = new FileOutputStream(recordSourceBean.getImageFilePath());
+                                Bitmap bm = ThumbnailUtils.createVideoThumbnail(recordSourceBean.getRecordFilePath(), MediaStore.Images.Thumbnails.FULL_SCREEN_KIND);
+                                bm = ThumbnailUtils.extractThumbnail(bm, Tools.getScreenWidth(context)/2, Tools.getScreenHeight(context)/2);
+                                bm.compress(Bitmap.CompressFormat.PNG,100,fileOutputStream);
+                                holder.iv_item_records.setImageBitmap(bm);
+                            }
+                        } catch (FileNotFoundException e) {
+                            e.printStackTrace();
+                        }
+
                         //获取录像的时长
                         MediaPlayer mediaPlayer = new MediaPlayer();
                         try {
