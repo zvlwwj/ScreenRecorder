@@ -157,7 +157,8 @@ public class RecordsRecyclerAdapter extends RecyclerView.Adapter<RecordsRecycler
     private void handleView(final ViewHolder holder, RecordSourceBean recordSourceBean,int position) {
         holder.view_back.setLayoutParams(new FrameLayout.LayoutParams(Tools.getScreenWidth(context)/2-Tools.dip2px(context,16),Tools.getScreenHeight(context)/2-Tools.dip2px(context,16)));
         //TODO 更换loading图！
-        holder.iv_item_records.setImageResource(R.mipmap.bg_load);if(isEdit) {
+        holder.iv_item_records.setImageResource(R.mipmap.logo);
+        if(isEdit) {
             //进入编辑模式
             holder.iv_item_check.setVisibility(View.VISIBLE);
             if(isChecked[position]){

@@ -1,6 +1,7 @@
 package com.zou.screenrecorder.activity;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.ComponentName;
 import android.content.Context;
@@ -34,7 +35,7 @@ import com.zou.screenrecorder.view.FloatView;
  */
 @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
 public class CapturePermissionRequestActivity extends Activity {
-    private static final String TAG = "CapturePermissionRequestActivity";
+    private static final String TAG = "PermissionActivity";
     private MediaProjectionManager projectionManager;
     private MediaProjection mediaProjection;
     private static final int REQUEST_CODE_SCREEN_CAPTURE = 101;
@@ -95,6 +96,7 @@ public class CapturePermissionRequestActivity extends Activity {
         floatView.setOnSingleTapListener(new FloatView.OnSingleTapListener() {
             @Override
             public void onSingleTap(View view) {
+                floatView.setEnabled(false);
                 if(recordService== null){
                     //请求屏幕录制的权限
                     floatView.buttonClickGif();
@@ -102,13 +104,12 @@ public class CapturePermissionRequestActivity extends Activity {
                 }else {
                     if (recordService.isRunning()) {
                         //停止录制
-                        floatView.setEnabled(false);
                         recordService.stopRecord();
-                        floatView.setEnabled(true);
                         floatView.stopGif();
                         handler.postDelayed(new Runnable() {
                             @Override
                             public void run() {
+                                floatView.setEnabled(true);
                                 floatView.hide();
                                 startActivity(new Intent(CapturePermissionRequestActivity.this,MainActivity.class));
                                 finish();
@@ -152,11 +153,18 @@ public class CapturePermissionRequestActivity extends Activity {
             case REQUEST_CODE_SCREEN_CAPTURE:
                 moveTaskToBack(true);
                 if(resultCode == RESULT_OK) {
-                    mediaProjection = projectionManager.getMediaProjection(resultCode, data);
-                    recordService.setMediaProject(mediaProjection);
-                    recordService.startRecord();
-                    floatView.startGif();
+                    if(recordService!=null&&!recordService.isRunning()) {
+                        mediaProjection = projectionManager.getMediaProjection(resultCode, data);
+                        recordService.setMediaProject(mediaProjection);
+                        recordService.startRecord();
+                        floatView.startGif();
+                    }else if(recordService == null){
+                        Log.e(TAG,"recordService服务未启动");
+                    }else if(recordService.isRunning()){
+                        Log.e(TAG,"正在尝试启动多个服务");
+                    }
                 }else{
+                    Toast.makeText(CapturePermissionRequestActivity.this,R.string.permission_record_refuse,Toast.LENGTH_SHORT).show();
                     floatView.setEnabled(true);
                     floatView.hide();
                     startActivity(new Intent(CapturePermissionRequestActivity.this,MainActivity.class));
@@ -180,7 +188,6 @@ public class CapturePermissionRequestActivity extends Activity {
      */
     @PermissionGrant(4)
     public void requestRecordSuccess(){
-        Toast.makeText(CapturePermissionRequestActivity.this,R.string.permission_record_start,Toast.LENGTH_SHORT).show();
         Intent captureIntent = projectionManager.createScreenCaptureIntent();
         startActivityForResult(captureIntent, REQUEST_CODE_SCREEN_CAPTURE);
     }
@@ -190,7 +197,12 @@ public class CapturePermissionRequestActivity extends Activity {
      */
     @PermissionDenied(4)
     public void requestRecordFailed(){
+        floatView.setEnabled(true);
+        floatView.hide();
         Toast.makeText(this,R.string.request_permission,Toast.LENGTH_SHORT).show();
+        startActivity(new Intent(CapturePermissionRequestActivity.this,MainActivity.class));
+        finish();
+
     }
 
     @Override

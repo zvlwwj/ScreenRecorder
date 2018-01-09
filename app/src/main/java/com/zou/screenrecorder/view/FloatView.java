@@ -113,7 +113,7 @@ public class FloatView extends CardView {
         //总是出现在应用程序窗口之上
         mParams.type = WindowManager.LayoutParams.TYPE_SYSTEM_ALERT;
         //设置图片格式，效果为背景透明
-        mParams.format = PixelFormat.TRANSLUCENT;
+        mParams.format = PixelFormat.RGBA_8888;
         mParams.flags = WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE | WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL | WindowManager.LayoutParams.FLAG_LAYOUT_INSET_DECOR;
         mParams.width = LayoutParams.WRAP_CONTENT;
         mParams.height = LayoutParams.WRAP_CONTENT;

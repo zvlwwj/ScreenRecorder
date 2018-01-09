@@ -4,7 +4,6 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Handler;
 import android.provider.Settings;
 import android.support.annotation.RequiresApi;
 import android.support.v4.widget.DrawerLayout;
@@ -22,7 +21,6 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
 
-import com.zhy.m.permission.MPermissions;
 import com.zou.screenrecorder.R;
 import com.zou.screenrecorder.adapter.RecordsRecyclerAdapter;
 import com.zou.screenrecorder.bean.RecordSourceBean;
@@ -107,14 +105,16 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
         File file = new File(recordDirectory);
+
         if(file.list()!=null&&file.list().length>0) {
             for (int i=0 ;i<file.list().length;i++) {
                 String string = file.list()[i];
                 String recordPath = recordDirectory+string;
                 String imagePath = imageDirectory+string.replace(".mp4",".png");
-                recordSourceBeans.add(new RecordSourceBean(recordPath,imagePath,i));
+                recordSourceBeans.add(0,new RecordSourceBean(recordPath,imagePath,i));
             }
         }
+
     }
 
     /**
