@@ -16,6 +16,7 @@ import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.IBinder;
 import android.os.SystemClock;
+import android.preference.PreferenceManager;
 import android.support.annotation.RequiresApi;
 import android.util.Log;
 
@@ -45,6 +46,10 @@ public class RecordService extends Service {
     private RecordCallBack recordCallBack;
     private Handler handler;
 
+    private int resolution_rate;//偏好设置中的分辨率
+    private int bit_rate;//偏好设置中的码率
+    private int video_frame;//偏好设置中的帧率
+
 
 
     @Override
@@ -66,6 +71,11 @@ public class RecordService extends Service {
         running = false;
         mediaRecorder = new MediaRecorder();
         handler = new Handler();
+
+        resolution_rate = Integer.parseInt(PreferenceManager.getDefaultSharedPreferences(this).getString("sync_frequency_resolution","100"));
+        bit_rate = Integer.parseInt(PreferenceManager.getDefaultSharedPreferences(this).getString("sync_frequency_bit_rate","24"));
+        video_frame = Integer.parseInt(PreferenceManager.getDefaultSharedPreferences(this).getString("sync_frequency_frame","30"));
+        Log.i(TAG,"分辨率 ： "+resolution_rate +" 码率 ： "+bit_rate + "Mbps 帧率 ; "+video_frame + "FPS");
     }
 
     @Override
@@ -177,11 +187,11 @@ public class RecordService extends Service {
         mediaRecorder.setVideoSource(MediaRecorder.VideoSource.SURFACE);
         mediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
         mediaRecorder.setOutputFile(Tools.getSaveRecordDirectory() + fileName + ".mp4");
-        mediaRecorder.setVideoSize(width, height);
+        mediaRecorder.setVideoSize(width*resolution_rate/100, height*resolution_rate/100);
         mediaRecorder.setVideoEncoder(MediaRecorder.VideoEncoder.H264);
         mediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
-        mediaRecorder.setVideoEncodingBitRate(24 * 1024 * 1024);
-        mediaRecorder.setVideoFrameRate(30);
+        mediaRecorder.setVideoEncodingBitRate(bit_rate * 1024 * 1024);
+        mediaRecorder.setVideoFrameRate(video_frame);
         mediaRecorder.prepare();
         } catch (Exception e) {
             e.printStackTrace();

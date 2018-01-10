@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="settings_list_preference_video_resolution_entries">
+        <item>屏幕分辨率2倍</item>
+        <item>和屏幕分辨率相同</item>
+        <item>屏幕分辨率1/2</item>
+        <item>屏幕分辨率1/4</item>
+    </string-array>
+    <string-array name="settings_list_preference_video_resolution_values" >
+        <item>200</item>
+        <item>100</item>
+        <item>50</item>
+        <item>25</item>
+    </string-array>
+
+    <string-array name="settings_list_preference_bit_rate_entries">
+        <item>24 Mbps</item>
+        <item>12 Mbps</item>
+        <item>8 Mbps</item>
+        <item>5 Mbps</item>
+        <item>4 Mbps</item>
+        <item>2 Mbps</item>
+    </string-array>
+
+    <string-array name="settings_list_preference_bit_rate_values" >
+        <item>24</item>
+        <item>12</item>
+        <item>8</item>
+        <item>5</item>
+        <item>4</item>
+        <item>2</item>
+    </string-array>
+
+    <string-array name="settings_list_preference_video_frame_entries" >
+        <item>60 FPS</item>
+        <item>50 FPS</item>
+        <item>40 FPS</item>
+        <item>30 FPS</item>
+        <item>20 FPS</item>
+        <item>15 FPS</item>
+    </string-array>
+
+    <string-array name="settings_list_preference_video_frame_values" >
+        <item>60</item>
+        <item>50</item>
+        <item>40</item>
+        <item>30</item>
+        <item>20</item>
+        <item>15</item>
+    </string-array>
+</resources>

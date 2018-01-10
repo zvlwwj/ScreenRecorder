@@ -91,5 +91,9 @@
     <string name="dialog_ok">去设置</string>
     <string name="dialog_cancel">取消</string>
     <string name="permission_record_refuse">请点击立即开始，开始录制屏幕</string>
+    <string name="settings_list_preference_video_resolution">视频分辨率</string>
+    <string name="settings_list_preference_bit_rate">视频码率</string>
+    <string name="settings_list_preference_video_frame">视频帧率</string>
+    <string name="audio_record">音频录制</string>
 
 </resources>

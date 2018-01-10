@@ -115,7 +115,7 @@ public class CapturePermissionRequestActivity extends Activity {
                                 startActivity(new Intent(CapturePermissionRequestActivity.this,MainActivity.class));
                                 finish();
                             }
-                        },750);
+                        },800);
                     } else {
                         floatView.buttonClickGif();
                         requestRecordPermission();

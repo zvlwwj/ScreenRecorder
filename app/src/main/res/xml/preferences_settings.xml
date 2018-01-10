@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <ListPreference
+        android:defaultValue="100"
+        android:dialogTitle="@string/settings_list_preference_video_resolution"
+        android:entries="@array/settings_list_preference_video_resolution_entries"
+        android:entryValues="@array/settings_list_preference_video_resolution_values"
+        android:key="sync_frequency_resolution"
+        android:negativeButtonText="@null"
+        android:positiveButtonText="@null"
+        android:title="@string/settings_list_preference_video_resolution" />
+    <ListPreference
+        android:defaultValue="24"
+        android:dialogTitle="@string/settings_list_preference_bit_rate"
+        android:entries="@array/settings_list_preference_bit_rate_entries"
+        android:entryValues="@array/settings_list_preference_bit_rate_values"
+        android:key="sync_frequency_bit_rate"
+        android:negativeButtonText="@null"
+        android:positiveButtonText="@null"
+        android:title="@string/settings_list_preference_bit_rate" />
+    <ListPreference
+        android:defaultValue="30"
+        android:dialogTitle="@string/settings_list_preference_video_frame"
+        android:entries="@array/settings_list_preference_video_frame_entries"
+        android:entryValues="@array/settings_list_preference_video_frame_values"
+        android:key="sync_frequency_frame"
+        android:negativeButtonText="@null"
+        android:positiveButtonText="@null"
+        android:title="@string/settings_list_preference_video_frame" />
+    <!--<SwitchPreference-->
+        <!--android:defaultValue="true"-->
+        <!--android:key="example_switch"-->
+        <!--android:title="@string/audio_record" />-->
+</PreferenceScreen>

@@ -32,6 +32,10 @@
             android:theme="@style/Transparent"
             android:excludeFromRecents="true"
             android:launchMode="singleInstance"/>
+        <activity android:name=".activity.SettingActivity"
+            android:label="@string/settings"
+            android:theme="@style/Theme.AppCompat"
+            android:parentActivityName=".activity.MainActivity"/>
     </application>
 
 </manifest>

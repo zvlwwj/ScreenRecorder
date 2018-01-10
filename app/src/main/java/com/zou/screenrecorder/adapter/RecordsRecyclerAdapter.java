@@ -5,12 +5,16 @@ import android.graphics.Bitmap;
 import android.media.MediaPlayer;
 import android.media.ThumbnailUtils;
 import android.os.Build;
+import android.os.Handler;
 import android.provider.MediaStore;
 import android.support.annotation.RequiresApi;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
+import android.view.animation.LinearInterpolator;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -21,10 +25,12 @@ import com.zou.screenrecorder.R;
 import com.zou.screenrecorder.bean.RecordSourceBean;
 import com.zou.screenrecorder.utils.Tools;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.lang.ref.SoftReference;
 import java.util.ArrayList;
 import java.util.Arrays;
 
@@ -46,14 +52,19 @@ public class RecordsRecyclerAdapter extends RecyclerView.Adapter<RecordsRecycler
     private Context context;
     private OnItemClickLitener mOnItemClickLitener;
     private boolean isEdit = false;
+    private Animation animation;
     //储存是否被选中的boolean数组
     private boolean[] isChecked;
+    private Handler handler;
     public RecordsRecyclerAdapter(ArrayList<RecordSourceBean> recordSourceBeans,Context context){
         this.recordSourceBeans = recordSourceBeans;
         this.context = context;
         registerAdapterDataObserver(observer);
         isChecked = new boolean[recordSourceBeans.size()];
         Arrays.fill(isChecked, false);
+        animation = AnimationUtils.loadAnimation(context,R.anim.anim_ratote);
+        animation.setInterpolator(new LinearInterpolator());
+        handler = new Handler();
     }
 
     @Override
@@ -156,8 +167,12 @@ public class RecordsRecyclerAdapter extends RecyclerView.Adapter<RecordsRecycler
      */
     private void handleView(final ViewHolder holder, RecordSourceBean recordSourceBean,int position) {
         holder.view_back.setLayoutParams(new FrameLayout.LayoutParams(Tools.getScreenWidth(context)/2-Tools.dip2px(context,16),Tools.getScreenHeight(context)/2-Tools.dip2px(context,16)));
+
         //TODO 更换loading图！
+//        Glide.with(context).load(R.mipmap.logo).into(holder.iv_item_records);
+        //.animate(R.anim.anim_ratote)
         holder.iv_item_records.setImageResource(R.mipmap.logo);
+        holder.iv_item_records.setAnimation(animation);
         if(isEdit) {
             //进入编辑模式
             holder.iv_item_check.setVisibility(View.VISIBLE);
@@ -195,27 +210,44 @@ public class RecordsRecyclerAdapter extends RecyclerView.Adapter<RecordsRecycler
         holder.iv_item_records.setLayoutParams(new FrameLayout.LayoutParams(Tools.getScreenWidth(context)/2-Tools.dip2px(context,16),Tools.getScreenHeight(context)/2-Tools.dip2px(context,16)));
         File file = new File(recordSourceBean.getImageFilePath());
         if(file.exists()) {
+            holder.iv_item_records.clearAnimation();
             Glide.with(context).load(recordSourceBean.getImageFilePath()).into(holder.iv_item_records);
         }
+        Log.i(TAG,"Thread.currentThread() "+Thread.currentThread().getName());
         Observable.just(recordSourceBean)
-                .subscribeOn(Schedulers.io())//订阅操作在io线程中
-                .observeOn(AndroidSchedulers.mainThread())//回调在主线程中
+                .subscribeOn(Schedulers.io())//订阅操作在主线程中
+                .observeOn(AndroidSchedulers.mainThread())//回调在io线程中
                 .map(new Func1<RecordSourceBean, String>() {
                     @Override
-                    public String call(RecordSourceBean recordSourceBean) {
-                        //若缓存不存在获取录像的缩略图
-                        try {
-                            File file = new File(recordSourceBean.getImageFilePath());
-                            if(!file.exists()){
-                                FileOutputStream fileOutputStream = new FileOutputStream(recordSourceBean.getImageFilePath());
-                                Bitmap bm = ThumbnailUtils.createVideoThumbnail(recordSourceBean.getRecordFilePath(), MediaStore.Images.Thumbnails.FULL_SCREEN_KIND);
-                                bm = ThumbnailUtils.extractThumbnail(bm, Tools.getScreenWidth(context)/2, Tools.getScreenHeight(context)/2);
-                                bm.compress(Bitmap.CompressFormat.PNG,100,fileOutputStream);
-                                holder.iv_item_records.setImageBitmap(bm);
-                            }
-                        } catch (FileNotFoundException e) {
-                            e.printStackTrace();
+                    public String call(final RecordSourceBean recordSourceBean) {
+                        //若缓存不存在,则获取录像的缩略图
+                        File file = new File(recordSourceBean.getImageFilePath());
+                        if(!file.exists()){
+                            new Thread(){
+                                @Override
+                                public void run() {
+                                    FileOutputStream fileOutputStream = null;
+                                    try {
+                                        fileOutputStream = new FileOutputStream(recordSourceBean.getImageFilePath());
+                                    } catch (FileNotFoundException e) {
+                                        e.printStackTrace();
+                                    }
+                                    Bitmap bm = ThumbnailUtils.createVideoThumbnail(recordSourceBean.getRecordFilePath(), MediaStore.Images.Thumbnails.FULL_SCREEN_KIND);
+                                    bm = ThumbnailUtils.extractThumbnail(bm, Tools.getScreenWidth(context)/2, Tools.getScreenHeight(context)/2);
+                                    bm.compress(Bitmap.CompressFormat.PNG,100,fileOutputStream);
+                                    final ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+                                    bm.compress(Bitmap.CompressFormat.PNG,100,byteArrayOutputStream);
+                                    handler.post(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            holder.iv_item_records.clearAnimation();
+                                            Glide.with(context).load(byteArrayOutputStream.toByteArray()).into(holder.iv_item_records);
+                                        }
+                                    });
+                                }
+                            }.start();
                         }
+
 
                         //获取录像的时长
                         MediaPlayer mediaPlayer = new MediaPlayer();
@@ -228,20 +260,22 @@ public class RecordsRecyclerAdapter extends RecyclerView.Adapter<RecordsRecycler
                         String duartion = Tools.durationToText(mediaPlayer.getDuration());
                         return duartion;
                     }
-                }).subscribe(new Action1<String>() {
-            @Override
-            public void call(String duartion) {
+                })
+//                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Action1<String>() {
+                    @Override
+                    public void call(String duartion) {
 
-//                holder.iv_item_records.setImageBitmap();
-                holder.tv_item_duration.setText(duartion);
-            }
-        }, new Action1<Throwable>() {
-            @Override
-            public void call(Throwable throwable) {
-                //异常处理
-                Toast.makeText(context,R.string.get_media_error,Toast.LENGTH_SHORT).show();
-            }
-        });
+        //                holder.iv_item_records.setImageBitmap();
+                        holder.tv_item_duration.setText(duartion);
+                    }
+                }, new Action1<Throwable>() {
+                    @Override
+                    public void call(Throwable throwable) {
+                        //异常处理
+                        Toast.makeText(context,R.string.get_media_error,Toast.LENGTH_SHORT).show();
+                    }
+                });
     }
 
     @Override
