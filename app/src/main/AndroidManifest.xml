@@ -34,8 +34,10 @@
             android:launchMode="singleInstance"/>
         <activity android:name=".activity.SettingActivity"
             android:label="@string/settings"
-            android:theme="@style/Theme.AppCompat"
-            android:parentActivityName=".activity.MainActivity"/>
+            android:theme="@style/Theme.AppCompat" />
+        <activity android:name=".activity.AboutActivity"
+            android:label="@string/nav_about"
+            android:theme="@style/Theme.AppCompat" />
     </application>
 
 </manifest>

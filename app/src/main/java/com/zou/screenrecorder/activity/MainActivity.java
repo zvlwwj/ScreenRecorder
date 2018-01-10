@@ -359,7 +359,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 break;
             case R.id.nav_about:
                 //关于
-
+                intent.setClass(this,AboutActivity.class);
+                startActivity(intent);
                 break;
             case R.id.nav_donate:
                 //捐赠

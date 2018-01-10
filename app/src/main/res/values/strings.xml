@@ -95,5 +95,9 @@
     <string name="settings_list_preference_bit_rate">视频码率</string>
     <string name="settings_list_preference_video_frame">视频帧率</string>
     <string name="audio_record">音频录制</string>
+    <string name="about_title">如果你喜欢这个Demo，欢迎和我联系！</string>
+    <string name="about_email">邮箱反馈</string>
+    <string name="about_github">源代码</string>
+    <string name="about_address">浙江，杭州</string>
 
 </resources>
