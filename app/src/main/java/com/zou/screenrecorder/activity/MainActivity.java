@@ -3,6 +3,7 @@ import android.Manifest;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.drawable.AnimationDrawable;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -24,7 +25,10 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.FrameLayout;
+import android.widget.ImageView;
 import android.widget.Toast;
 
 import com.zhy.m.permission.MPermissions;
@@ -52,6 +56,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private ActionBarDrawerToggle toggle;
     private MenuItem menuItemShare,menuItemDelete;
     private AlertDialog alertDialog;
+    private ImageView iv_bg_drawer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -163,6 +168,34 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         NavigationView navigationView =  findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
         navigationView.setItemIconTintList(null);
+        View headView = navigationView.getHeaderView(0);
+        iv_bg_drawer = headView.findViewById(R.id.iv_bg_drawer);
+        final AnimationDrawable animationDrawable = (AnimationDrawable) iv_bg_drawer.getDrawable();
+        drawer.addDrawerListener(new DrawerLayout.DrawerListener() {
+            @Override
+            public void onDrawerSlide(View drawerView, float slideOffset) {
+                if(slideOffset>=0.5) {
+                    int index = (int) (animationDrawable.getNumberOfFrames() * 2*slideOffset-animationDrawable.getNumberOfFrames());
+                    Log.i(TAG, "onDrawerSlide index :" + index + "");
+                    iv_bg_drawer.setImageDrawable(animationDrawable.getFrame(index==animationDrawable.getNumberOfFrames()?animationDrawable.getNumberOfFrames()-1:index));
+                }
+            }
+
+            @Override
+            public void onDrawerOpened(View drawerView) {
+                Log.i(TAG,"onDrawerOpened");
+            }
+
+            @Override
+            public void onDrawerClosed(View drawerView) {
+                Log.i(TAG,"onDrawerClosed");
+            }
+
+            @Override
+            public void onDrawerStateChanged(int newState) {
+                Log.i(TAG,"onDrawerStateChanged");
+            }
+        });
 
         adapter = new RecordsRecyclerAdapter(recordSourceBeans,this);
         recycler_records =  findViewById(R.id.recycler_records);
@@ -364,7 +397,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 break;
             case R.id.nav_donate:
                 //捐赠
-
+                Toast.makeText(this,R.string.donate_not_open,Toast.LENGTH_SHORT).show();
                 break;
         }
         drawer.closeDrawer(GravityCompat.START);

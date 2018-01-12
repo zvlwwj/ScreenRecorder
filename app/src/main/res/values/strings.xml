@@ -99,5 +99,8 @@
     <string name="about_email">邮箱反馈</string>
     <string name="about_github">源代码</string>
     <string name="about_address">浙江，杭州</string>
+    <string name="about_email_intent">关于：写轮眼录屏</string>
+    <string name="about_not_found_email">没有找到email应用</string>
+    <string name="donate_not_open">此功能尚未开通~</string>
 
 </resources>
