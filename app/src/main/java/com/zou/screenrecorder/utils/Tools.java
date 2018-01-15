@@ -120,6 +120,18 @@ public class Tools {
     }
 
     /**
+     * 根据手机的分辨率从 dp 的单位 转成为 px(像素)
+     */
+    public static float[] dip2pxArray(Context context, float[] dpValue) {
+        float[] result = new float[dpValue.length];
+        final float scale = context.getResources().getDisplayMetrics().density;
+        for(int i=0;i<dpValue.length;i++){
+            result[i] = dpValue[i] * scale;
+        }
+        return result;
+    }
+
+    /**
      * 根据手机的分辨率从 px(像素) 的单位 转成为 dp
      */
     public static int px2dip(Context context, float pxValue) {
@@ -188,5 +200,19 @@ public class Tools {
                 return null;
             }
         }
+    }
+
+    /**
+     * 获取状态栏的高度
+     * @param context
+     * @return
+     */
+    public static int getStatusBarHeight(Context context) {
+        int result = 0;
+        int resourceId = context.getResources().getIdentifier("status_bar_height", "dimen", "android");
+        if (resourceId > 0) {
+            result = context.getResources().getDimensionPixelSize(resourceId);
+        }
+        return result;
     }
 }

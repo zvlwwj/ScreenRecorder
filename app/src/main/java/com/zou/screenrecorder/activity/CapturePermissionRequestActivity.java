@@ -8,6 +8,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
+import android.content.res.Configuration;
 import android.media.projection.MediaProjection;
 import android.media.projection.MediaProjectionManager;
 import android.os.Build;
@@ -48,6 +49,7 @@ public class CapturePermissionRequestActivity extends Activity {
     private ServiceConnection connection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName className, IBinder service) {
+//            Log.i(TAG,"onServiceConnected : "+Thread.currentThread());
             floatView.setEnabled(true);
             DisplayMetrics metrics = new DisplayMetrics();
             getWindowManager().getDefaultDisplay().getMetrics(metrics);
@@ -66,6 +68,15 @@ public class CapturePermissionRequestActivity extends Activity {
                     Toast.makeText(context,R.string.record_stop,Toast.LENGTH_SHORT).show();
                 }
             });
+             try {
+                 synchronized (CapturePermissionRequestActivity.this) {
+                     Log.i(TAG, "notify");
+                     CapturePermissionRequestActivity.this.notify();
+                 }
+             }catch (Exception e){
+                 Log.i(TAG,"NO notify");
+             }
+
         }
 
         @Override
@@ -80,12 +91,12 @@ public class CapturePermissionRequestActivity extends Activity {
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         initData();
-        showFloatWindow();
         /**
          *  开启服务
          */
         Intent intent = new Intent(CapturePermissionRequestActivity.this, RecordService.class);
         bindService(intent, connection, BIND_AUTO_CREATE);
+        showFloatWindow();
         moveTaskToBack(true);
     }
 
@@ -148,21 +159,48 @@ public class CapturePermissionRequestActivity extends Activity {
      * 屏幕捕捉请求 REQUEST_CODE_SCREEN_CAPTURE
      */
     @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+    protected void onActivityResult(int requestCode, final int resultCode, final Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         switch (requestCode){
             case REQUEST_CODE_SCREEN_CAPTURE:
                 moveTaskToBack(true);
                 if(resultCode == RESULT_OK) {
-                    if(recordService!=null&&!recordService.isRunning()) {
+                    if (recordService != null && !recordService.isRunning()) {
                         mediaProjection = projectionManager.getMediaProjection(resultCode, data);
                         recordService.setMediaProject(mediaProjection);
                         recordService.startRecord();
                         floatView.startGif();
-                    }else if(recordService == null){
-                        Log.e(TAG,"recordService服务未启动");
-                    }else if(recordService.isRunning()){
-                        Log.e(TAG,"正在尝试启动多个服务");
+                    }else {
+                        //TODO 同步锁逻辑待优化
+                        new Thread() {
+                            @Override
+                            public void run() {
+                                synchronized (CapturePermissionRequestActivity.this) {
+                                    try {
+//                                        Log.i(TAG, "wait....");
+                                        CapturePermissionRequestActivity.this.wait();
+                                    } catch (InterruptedException e) {
+                                        e.printStackTrace();
+                                    }
+                                    handler.post(new Runnable() {
+                                        @Override
+                                        public void run() {
+//                                            Log.i(TAG, "onActivityResult : " + Thread.currentThread());
+                                            if (recordService != null && !recordService.isRunning()) {
+                                                mediaProjection = projectionManager.getMediaProjection(resultCode, data);
+                                                recordService.setMediaProject(mediaProjection);
+                                                recordService.startRecord();
+                                                floatView.startGif();
+                                            } else if (recordService == null) {
+                                                Log.e(TAG, "recordService服务未启动");
+                                            } else if (recordService.isRunning()) {
+                                                Log.e(TAG, "正在尝试启动多个服务");
+                                            }
+                                        }
+                                    });
+                                }
+                            }
+                        }.start();
                     }
                 }else{
                     Toast.makeText(CapturePermissionRequestActivity.this,R.string.permission_record_refuse,Toast.LENGTH_SHORT).show();
@@ -217,5 +255,6 @@ public class CapturePermissionRequestActivity extends Activity {
     protected void onDestroy() {
         super.onDestroy();
         unbindService(connection);
+        floatView.hide();
     }
 }

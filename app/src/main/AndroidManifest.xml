@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.zou.screenrecorder">
-    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.RECORD_AUDIO"/>
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher_other_round"
@@ -31,6 +31,7 @@
         <activity android:name=".activity.CapturePermissionRequestActivity"
             android:theme="@style/Transparent"
             android:excludeFromRecents="true"
+            android:configChanges="screenSize"
             android:launchMode="singleInstance"/>
         <activity android:name=".activity.SettingActivity"
             android:label="@string/settings"

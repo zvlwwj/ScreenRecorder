@@ -22,6 +22,7 @@ import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -39,6 +40,8 @@ import com.zou.screenrecorder.adapter.RecordsRecyclerAdapter;
 import com.zou.screenrecorder.bean.RecordSourceBean;
 import com.zou.screenrecorder.utils.Constant;
 import com.zou.screenrecorder.utils.Tools;
+import com.zou.screenrecorder.view.SlideView;
+
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -56,7 +59,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private ActionBarDrawerToggle toggle;
     private MenuItem menuItemShare,menuItemDelete;
     private AlertDialog alertDialog;
-    private ImageView iv_bg_drawer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -168,32 +170,36 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         NavigationView navigationView =  findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
         navigationView.setItemIconTintList(null);
-        View headView = navigationView.getHeaderView(0);
-        iv_bg_drawer = headView.findViewById(R.id.iv_bg_drawer);
-        final AnimationDrawable animationDrawable = (AnimationDrawable) iv_bg_drawer.getDrawable();
+        ViewGroup headView = (ViewGroup) navigationView.getHeaderView(0);
+        final SlideView slideView = new SlideView(this);
+        FrameLayout.LayoutParams lp = new FrameLayout.LayoutParams((int)slideView.getSild(),(int)(slideView.getSild()+Tools.getStatusBarHeight(this)));
+        lp.topMargin = Tools.getStatusBarHeight(this);
+        lp.gravity= Gravity.CENTER_HORIZONTAL;
+        slideView.setLayoutParams(lp);
+        headView.addView(slideView,0);
         drawer.addDrawerListener(new DrawerLayout.DrawerListener() {
             @Override
             public void onDrawerSlide(View drawerView, float slideOffset) {
-                if(slideOffset>=0.5) {
-                    int index = (int) (animationDrawable.getNumberOfFrames() * 2*slideOffset-animationDrawable.getNumberOfFrames());
-                    Log.i(TAG, "onDrawerSlide index :" + index + "");
-                    iv_bg_drawer.setImageDrawable(animationDrawable.getFrame(index==animationDrawable.getNumberOfFrames()?animationDrawable.getNumberOfFrames()-1:index));
+                if(slideOffset>0.8) {
+                    slideView.setPercent((float) ((slideOffset-0.8)*5));
+                }else{
+                    slideView.setPercent(0);
                 }
             }
 
             @Override
             public void onDrawerOpened(View drawerView) {
-                Log.i(TAG,"onDrawerOpened");
+//                Log.i(TAG,"onDrawerOpened");
             }
 
             @Override
             public void onDrawerClosed(View drawerView) {
-                Log.i(TAG,"onDrawerClosed");
+//                Log.i(TAG,"onDrawerClosed");
             }
 
             @Override
             public void onDrawerStateChanged(int newState) {
-                Log.i(TAG,"onDrawerStateChanged");
+//                Log.i(TAG,"onDrawerStateChanged");
             }
         });
 
@@ -263,7 +269,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        Log.i(TAG,"onCreateOptionsMenu");
         getMenuInflater().inflate(R.menu.menu_main, menu);
         menuItemShare = menu.findItem(R.id.action_share);
         menuItemDelete = menu.findItem(R.id.action_delete);

@@ -4,8 +4,10 @@ import android.content.Context;
 import android.graphics.Color;
 import android.graphics.PixelFormat;
 import android.graphics.drawable.AnimationDrawable;
+import android.os.Build;
 import android.os.Handler;
 import android.support.v7.widget.CardView;
+import android.util.Log;
 import android.view.GestureDetector;
 import android.view.Gravity;
 import android.view.MotionEvent;
@@ -28,6 +30,7 @@ import java.lang.reflect.Field;
  */
 
 public class FloatView extends CardView {
+    private static final String TAG = "FloatView";
     private Context mContext,viewContext;
     private ImageView iv_display;
     private FloatingManager mWindowManager;
@@ -111,16 +114,22 @@ public class FloatView extends CardView {
         mParams.x = 100;
         mParams.y = 100;
         //总是出现在应用程序窗口之上
-        mParams.type = WindowManager.LayoutParams.TYPE_SYSTEM_ALERT;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O){
+            mParams.type = WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY;
+        }else {
+            mParams.type = WindowManager.LayoutParams.TYPE_SYSTEM_ALERT;
+        }
         //设置图片格式，效果为背景透明
         mParams.format = PixelFormat.RGBA_8888;
         mParams.flags = WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE | WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL | WindowManager.LayoutParams.FLAG_LAYOUT_INSET_DECOR;
         mParams.width = LayoutParams.WRAP_CONTENT;
         mParams.height = LayoutParams.WRAP_CONTENT;
         mWindowManager.addView(this, mParams);
+        Log.i(TAG,TAG+ " show!!!!");
     }
 
     public void hide() {
+        Log.i(TAG,TAG+ " hide!!!!");
         mWindowManager.removeView(this);
     }
 
