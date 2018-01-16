@@ -31,10 +31,10 @@
         <activity android:name=".activity.CapturePermissionRequestActivity"
             android:theme="@style/Transparent"
             android:excludeFromRecents="true"
-            android:configChanges="screenSize"
+            android:configChanges="orientation|screenSize"
             android:launchMode="singleInstance"/>
         <activity android:name=".activity.SettingActivity"
-            android:label="@string/settings"
+            android:label="@string/nav_settings"
             android:theme="@style/Theme.AppCompat" />
         <activity android:name=".activity.AboutActivity"
             android:label="@string/nav_about"

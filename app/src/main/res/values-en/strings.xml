@@ -1,14 +1,14 @@
 <resources>
-    <string name="app_name">写轮眼录屏</string>
+    <string name="app_name">Sharingan Screen Recorder</string>
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
-    <string name="request_permission">需要允许权限才能使用该功能</string>
-    <string name="version_too_low">需要Android5.0系统以上，才能使用该功能。</string>
-    <string name="nav_settings">设置</string>
-    <string name="nav_about">关于</string>
-    <string name="nav_video_library">我的录制</string>
-    <string name="nav_donate">捐赠</string>
-    <string name="get_media_error">没有获取到录像文件</string>
+    <string name="request_permission">need the permission</string>
+    <string name="version_too_low">The Android Version is too low</string>
+    <string name="nav_settings">Settings</string>
+    <string name="nav_about">About</string>
+    <string name="nav_video_library">My Videos</string>
+    <string name="nav_donate">Tips</string>
+    <string name="get_media_error">get video information error</string>
 
 
     <!--ijkplayer-->
@@ -80,28 +80,28 @@
     <string name="VideoView_player_IjkExoMediaPlayer">Player: IjkExoMediaPlayer</string>
     <string name="lockscreen_transport_play_description">play</string>
     <string name="lockscreen_transport_pause_description">pause</string>
-    <string name="description">描述</string>
-    <string name="edit">编辑</string>
-    <string name="share">分享</string>
-    <string name="delete">删除</string>
-    <string name="wechat_video_support_limit">微信暂不支持多个视频同时分享！</string>
-    <string name="record_stop">录制停止</string>
-    <string name="dialog_request_float_title">悬浮窗权限</string>
-    <string name="dialog_request_float_content">要实现屏幕录制功能需要悬浮窗权限，请设置允许。</string>
-    <string name="dialog_ok">去设置</string>
-    <string name="dialog_cancel">取消</string>
-    <string name="permission_record_refuse">请点击立即开始，开始录制屏幕</string>
-    <string name="settings_list_preference_video_resolution">视频分辨率</string>
-    <string name="settings_list_preference_bit_rate">视频码率</string>
-    <string name="settings_list_preference_video_frame">视频帧率</string>
-    <string name="audio_record">音频录制</string>
-    <string name="about_title">跪求bug反馈和改进建议！</string>
-    <string name="about_email">邮箱反馈</string>
-    <string name="about_github">源代码</string>
-    <string name="about_address">浙江，杭州</string>
-    <string name="about_email_intent">关于：写轮眼录屏</string>
-    <string name="about_not_found_email">没有找到email应用</string>
-    <string name="donate_not_open">此功能尚未开通~</string>
-    <string name="begin">开始</string>
+    <string name="description">description</string>
+    <string name="edit">Edit</string>
+    <string name="share">Share</string>
+    <string name="delete">Delete</string>
+    <string name="wechat_video_support_limit">Wechat not support to share multiple videos together!</string>
+    <string name="record_stop">record stop</string>
+    <string name="dialog_request_float_title">Display pop-up Window Permission</string>
+    <string name="dialog_request_float_content">This Function needs Display pop-up Window Permission, pls set it.</string>
+    <string name="dialog_ok">to Settings</string>
+    <string name="dialog_cancel">Cancel</string>
+    <string name="permission_record_refuse">pls pick start now to start record</string>
+    <string name="settings_list_preference_video_resolution">video resolution</string>
+    <string name="settings_list_preference_bit_rate">video bit rate</string>
+    <string name="settings_list_preference_video_frame">video frame rate</string>
+    <string name="audio_record">audio record</string>
+    <string name="about_title">pls feed back the bug and </string>
+    <string name="about_email">feed back by email</string>
+    <string name="about_github">source code</string>
+    <string name="about_address">China ZheJiang Province, Hangzhou</string>
+    <string name="about_email_intent">About：Sharingan Screen Recorder</string>
+    <string name="about_not_found_email">no email applications</string>
+    <string name="donate_not_open">thank you, but this function has not open ~_~</string>
+    <string name="begin">start</string>
 
 </resources>

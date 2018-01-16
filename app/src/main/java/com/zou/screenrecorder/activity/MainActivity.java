@@ -59,6 +59,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private ActionBarDrawerToggle toggle;
     private MenuItem menuItemShare,menuItemDelete;
     private AlertDialog alertDialog;
+    private ImageView iv_bg_drawer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

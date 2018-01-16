@@ -68,15 +68,6 @@ public class CapturePermissionRequestActivity extends Activity {
                     Toast.makeText(context,R.string.record_stop,Toast.LENGTH_SHORT).show();
                 }
             });
-             try {
-                 synchronized (CapturePermissionRequestActivity.this) {
-                     Log.i(TAG, "notify");
-                     CapturePermissionRequestActivity.this.notify();
-                 }
-             }catch (Exception e){
-                 Log.i(TAG,"NO notify");
-             }
-
         }
 
         @Override
@@ -170,37 +161,10 @@ public class CapturePermissionRequestActivity extends Activity {
                         recordService.setMediaProject(mediaProjection);
                         recordService.startRecord();
                         floatView.startGif();
-                    }else {
-                        //TODO 同步锁逻辑待优化
-                        new Thread() {
-                            @Override
-                            public void run() {
-                                synchronized (CapturePermissionRequestActivity.this) {
-                                    try {
-//                                        Log.i(TAG, "wait....");
-                                        CapturePermissionRequestActivity.this.wait();
-                                    } catch (InterruptedException e) {
-                                        e.printStackTrace();
-                                    }
-                                    handler.post(new Runnable() {
-                                        @Override
-                                        public void run() {
-//                                            Log.i(TAG, "onActivityResult : " + Thread.currentThread());
-                                            if (recordService != null && !recordService.isRunning()) {
-                                                mediaProjection = projectionManager.getMediaProjection(resultCode, data);
-                                                recordService.setMediaProject(mediaProjection);
-                                                recordService.startRecord();
-                                                floatView.startGif();
-                                            } else if (recordService == null) {
-                                                Log.e(TAG, "recordService服务未启动");
-                                            } else if (recordService.isRunning()) {
-                                                Log.e(TAG, "正在尝试启动多个服务");
-                                            }
-                                        }
-                                    });
-                                }
-                            }
-                        }.start();
+                    }else if (recordService == null) {
+                        Log.e(TAG, "recordService服务未启动");
+                    } else if (recordService.isRunning()) {
+                        Log.e(TAG, "正在尝试启动多个服务");
                     }
                 }else{
                     Toast.makeText(CapturePermissionRequestActivity.this,R.string.permission_record_refuse,Toast.LENGTH_SHORT).show();
@@ -214,6 +178,13 @@ public class CapturePermissionRequestActivity extends Activity {
     }
 
 
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+        DisplayMetrics metrics = new DisplayMetrics();
+        getWindowManager().getDefaultDisplay().getMetrics(metrics);
+        recordService.setConfig(metrics.widthPixels, metrics.heightPixels, metrics.densityDpi);
+    }
 
     /**
      * 请求屏幕录制的权限
