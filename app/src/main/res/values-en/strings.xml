@@ -103,5 +103,9 @@
     <string name="about_not_found_email">no email applications</string>
     <string name="donate_not_open">thank you, but this function has not open ~_~</string>
     <string name="begin">start</string>
+    <string name="dialog_exit_title">exit application</string>
+    <string name="dialog_exit_message">are you sure to exit this application?</string>
+    <string name="dialog_exit_ok">exit</string>
+    <string name="dialog_exit_cancel">cancel</string>
 
 </resources>

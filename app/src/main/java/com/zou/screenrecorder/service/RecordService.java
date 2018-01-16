@@ -250,4 +250,10 @@ public class RecordService extends Service {
         void onStart();
         void onStop();
     }
+
+    @Override
+    public boolean onUnbind(Intent intent) {
+        mediaRecorder.release();
+        return super.onUnbind(intent);
+    }
 }

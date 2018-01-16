@@ -103,5 +103,9 @@
     <string name="about_not_found_email">没有找到email应用</string>
     <string name="donate_not_open">此功能尚未开通~</string>
     <string name="begin">开始</string>
+    <string name="dialog_exit_title">退出应用</string>
+    <string name="dialog_exit_message">是否退出写轮眼录屏？</string>
+    <string name="dialog_exit_ok">退出</string>
+    <string name="dialog_exit_cancel">取消</string>
 
 </resources>

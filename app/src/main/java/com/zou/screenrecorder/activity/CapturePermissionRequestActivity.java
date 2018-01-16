@@ -114,7 +114,9 @@ public class CapturePermissionRequestActivity extends Activity {
                             public void run() {
                                 floatView.setEnabled(true);
                                 floatView.hide();
-                                startActivity(new Intent(CapturePermissionRequestActivity.this,MainActivity.class));
+                                Intent intent = new Intent(CapturePermissionRequestActivity.this,MainActivity.class);
+                                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK|Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                                startActivity(intent);
                                 finish();
                             }
                         },800);
@@ -170,7 +172,9 @@ public class CapturePermissionRequestActivity extends Activity {
                     Toast.makeText(CapturePermissionRequestActivity.this,R.string.permission_record_refuse,Toast.LENGTH_SHORT).show();
                     floatView.setEnabled(true);
                     floatView.hide();
-                    startActivity(new Intent(CapturePermissionRequestActivity.this,MainActivity.class));
+                    Intent intent = new Intent(CapturePermissionRequestActivity.this,MainActivity.class);
+                    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK|Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                    startActivity(intent);
                     finish();
                 }
                 break;
@@ -210,9 +214,10 @@ public class CapturePermissionRequestActivity extends Activity {
         floatView.setEnabled(true);
         floatView.hide();
         Toast.makeText(this,R.string.request_permission,Toast.LENGTH_SHORT).show();
-        startActivity(new Intent(CapturePermissionRequestActivity.this,MainActivity.class));
+        Intent intent = new Intent(CapturePermissionRequestActivity.this,MainActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK|Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        startActivity(intent);
         finish();
-
     }
 
     @Override

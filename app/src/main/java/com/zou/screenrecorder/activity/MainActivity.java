@@ -380,7 +380,22 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             exitEditToolBar();
             return;
         }
-        super.onBackPressed();
+        new AlertDialog.Builder(MainActivity.this)
+                .setTitle(getString(R.string.dialog_exit_title))
+                .setMessage(getString(R.string.dialog_exit_message))
+                .setPositiveButton(getString(R.string.dialog_exit_ok), new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        alertDialog.dismiss();
+                        MainActivity.super.onBackPressed();
+                        System.exit(0);
+                    }
+                })
+                .setNegativeButton(getString(R.string.dialog_exit_cancel), null)
+                .setCancelable(false)
+                .show();
+
+//
 
     }
 

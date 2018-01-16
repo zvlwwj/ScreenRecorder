@@ -13,6 +13,6 @@ public class ScreenRecordApplication extends Application{
     @Override
     public void onCreate() {
         super.onCreate();
-//        startService(new Intent(this, RecordService.class));
+
     }
 }
