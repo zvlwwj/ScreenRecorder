@@ -50,9 +50,9 @@ public class RecordActivity extends AppCompatActivity {
     private void initView() {
         //初始化播放器
         String uri = getIntent().getStringExtra(Constant.INTENT_RECORD_URI);
-        mVideoView = (IjkVideoView) findViewById(R.id.video_view);
-        hud_view = (TableLayout) findViewById(R.id.hud_view);
-        mVideoView.setHudView(hud_view);
+        mVideoView =  findViewById(R.id.video_view);
+//        hud_view = (TableLayout) findViewById(R.id.hud_view);
+//        mVideoView.setHudView(hud_view);
         //初始化控制界面
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -117,5 +117,6 @@ public class RecordActivity extends AppCompatActivity {
     protected void onDestroy() {
         super.onDestroy();
         EventBus.getDefault().unregister(this);
+        mVideoView.release(true);
     }
 }

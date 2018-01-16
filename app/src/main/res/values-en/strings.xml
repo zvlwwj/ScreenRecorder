@@ -95,7 +95,7 @@
     <string name="settings_list_preference_bit_rate">video bit rate</string>
     <string name="settings_list_preference_video_frame">video frame rate</string>
     <string name="audio_record">audio record</string>
-    <string name="about_title">pls feed back the bug and </string>
+    <string name="about_title">pls feed back the bug and suggestion</string>
     <string name="about_email">feed back by email</string>
     <string name="about_github">source code</string>
     <string name="about_address">China ZheJiang Province, Hangzhou</string>

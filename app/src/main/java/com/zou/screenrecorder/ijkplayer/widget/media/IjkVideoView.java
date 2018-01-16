@@ -411,6 +411,7 @@ public class IjkVideoView extends FrameLayout implements CustomMediaController.M
     IMediaPlayer.OnPreparedListener mPreparedListener = new IMediaPlayer.OnPreparedListener() {
         public void onPrepared(IMediaPlayer mp) {
             mPrepareEndTime = System.currentTimeMillis();
+            if (mHudViewHolder != null)
             mHudViewHolder.updateLoadCost(mPrepareEndTime - mPrepareStartTime);
             mCurrentState = STATE_PREPARED;
 
@@ -593,6 +594,7 @@ public class IjkVideoView extends FrameLayout implements CustomMediaController.M
         @Override
         public void onSeekComplete(IMediaPlayer mp) {
             mSeekEndTime = System.currentTimeMillis();
+            if (mHudViewHolder != null)
             mHudViewHolder.updateSeekCost(mSeekEndTime - mSeekStartTime);
         }
     };
