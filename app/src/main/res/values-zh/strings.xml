@@ -107,5 +107,8 @@
     <string name="dialog_exit_message">是否退出写轮眼录屏？</string>
     <string name="dialog_exit_ok">退出</string>
     <string name="dialog_exit_cancel">取消</string>
+    <string name="choose_style">切换形态</string>
+    <string name="style_grid">style_grid</string>
+    <string name="style_list">style_list</string>
 
 </resources>

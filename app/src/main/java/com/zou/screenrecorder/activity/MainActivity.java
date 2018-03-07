@@ -350,6 +350,19 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                     }
                 }
                 break;
+
+            case R.id.action_display_style:
+                //切换形态
+                String title = item.getTitle().toString();
+                if(getResources().getString(R.string.style_grid).equals(title)){
+                    item.setTitle(R.string.style_list);
+                    item.setIcon(R.drawable.ic_action_item_style_list);
+                }else if(getResources().getString(R.string.style_list).equals(title)){
+                    item.setTitle(R.string.style_grid);
+                    item.setIcon(R.drawable.ic_action_item_style_grid);
+                }
+
+                break;
         }
         return super.onOptionsItemSelected(item);
     }

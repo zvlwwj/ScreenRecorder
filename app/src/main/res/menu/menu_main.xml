@@ -15,4 +15,10 @@
         android:orderInCategory="90"
         android:icon="@mipmap/ic_delete"
         app:showAsAction="ifRoom" />
+
+    <item android:id="@+id/action_display_style"
+        android:title="@string/style_grid"
+        android:orderInCategory="90"
+        android:icon="@drawable/ic_action_item_style_grid"
+        app:showAsAction="ifRoom"/>
 </menu>

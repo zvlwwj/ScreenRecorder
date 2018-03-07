@@ -227,6 +227,7 @@ public class RecordService extends Service {
     }
 
     /**
+     *
      * 储存bitmap到CacheDir中
      */
     private void storeBitmap(String path,Bitmap bitmap) {

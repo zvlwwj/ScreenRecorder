@@ -107,5 +107,8 @@
     <string name="dialog_exit_message">are you sure to exit this application?</string>
     <string name="dialog_exit_ok">exit</string>
     <string name="dialog_exit_cancel">cancel</string>
+    <string name="choose_style">切换形态</string>
+    <string name="style_grid">style_grid</string>
+    <string name="style_list">style_list</string>
 
 </resources>

@@ -1,5 +1,7 @@
 package com.zou.screenrecorder.view;
 
+import android.animation.ObjectAnimator;
+import android.animation.ValueAnimator;
 import android.content.Context;
 import android.graphics.Color;
 import android.graphics.PixelFormat;
@@ -42,6 +44,7 @@ public class FloatView extends CardView {
     private AnimationDrawable animationDrawableStart,animationDrawableStop;
     private Handler handler;
     private Animation rotateAnimation;
+    private ValueAnimator alphaAnimation,alphaAnimationReserve;
     public FloatView(Context context) {
         super(context);
         viewContext = context;
@@ -63,6 +66,24 @@ public class FloatView extends CardView {
         //动画初始化
         rotateAnimation = AnimationUtils.loadAnimation(mContext,R.anim.anim_ratote);
         rotateAnimation.setInterpolator(new LinearInterpolator());
+        alphaAnimation = ObjectAnimator.ofFloat(100,0).setDuration(1000);
+        alphaAnimation.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+            @Override
+            public void onAnimationUpdate(ValueAnimator animation) {
+                mParams.alpha = (float) (((float)animation.getAnimatedValue())/100*0.7+0.3);
+                mParams.x = (int) ((float)animation.getAnimatedValue()/100*(mParams.x-100)+100);
+                mParams.y = (int) ((float)animation.getAnimatedValue()/100*(mParams.y-100)+100);
+                mWindowManager.updateView(FloatView.this, mParams);
+            }
+        });
+        alphaAnimationReserve = ObjectAnimator.ofFloat(0.3f,1f).setDuration(1000);
+        alphaAnimationReserve.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+            @Override
+            public void onAnimationUpdate(ValueAnimator animation) {
+                mParams.alpha = (float) animation.getAnimatedValue();
+                mWindowManager.updateView(FloatView.this, mParams);
+            }
+        });
     }
 
     public void setImageResource(int res){
@@ -78,6 +99,7 @@ public class FloatView extends CardView {
     }
 
     public void recordingGif(){
+        alphaAnimation.start();
         setEnabled(true);
         iv_display.clearAnimation();
         iv_display.setImageResource(R.mipmap.frame_47);
@@ -95,6 +117,8 @@ public class FloatView extends CardView {
     }
 
     public void stopGif(){
+        alphaAnimationReserve.start();
+        mWindowManager.updateView(FloatView.this, mParams);
         iv_display.clearAnimation();
         animationDrawableStop.start();
         handler.postDelayed(new Runnable() {
