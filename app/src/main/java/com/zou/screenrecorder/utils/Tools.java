@@ -14,6 +14,7 @@ import android.widget.Toast;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -214,5 +215,21 @@ public class Tools {
             result = context.getResources().getDimensionPixelSize(resourceId);
         }
         return result;
+    }
+
+    /**
+     * 计算文件大小M
+     * @param filePath
+     * @return
+     */
+    public static String calculateFileSize(String filePath) {
+        File f = new File(filePath);
+        if (f.exists() && f.isFile()) {
+            double length = f.length();
+            DecimalFormat df = new DecimalFormat("0.00");
+            return df.format(length/1024/1024);
+        } else {
+            return "";
+        }
     }
 }

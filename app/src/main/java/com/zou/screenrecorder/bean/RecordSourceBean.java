@@ -9,10 +9,30 @@ public class RecordSourceBean {
     private String ImageFilePath;
     private boolean tmpDelete;
     private int sourcePosition;
-    public RecordSourceBean(String recordFilePath, String imageFilePath,int sourcePosition) {
+    private String fileName;
+    private String fileSize;
+    public RecordSourceBean(String recordFilePath, String imageFilePath,int sourcePosition,String fileName,String fileSize) {
         RecordFilePath = recordFilePath;
         ImageFilePath = imageFilePath;
         this.sourcePosition = sourcePosition;
+        this.fileName = fileName;
+        this.fileSize = fileSize;
+    }
+
+    public String getFileName() {
+        return fileName;
+    }
+
+    public void setFileName(String fileName) {
+        this.fileName = fileName;
+    }
+
+    public String getFileSize() {
+        return fileSize;
+    }
+
+    public void setFileSize(String fileSize) {
+        this.fileSize = fileSize;
     }
 
     public String getRecordFilePath() {

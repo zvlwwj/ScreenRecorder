@@ -1,9 +1,9 @@
 package com.zou.screenrecorder.activity;
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.pm.PackageManager;
-import android.graphics.drawable.AnimationDrawable;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -19,9 +19,9 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.GridLayoutManager;
+import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -36,7 +36,8 @@ import com.zhy.m.permission.MPermissions;
 import com.zhy.m.permission.PermissionDenied;
 import com.zhy.m.permission.PermissionGrant;
 import com.zou.screenrecorder.R;
-import com.zou.screenrecorder.adapter.RecordsRecyclerAdapter;
+import com.zou.screenrecorder.adapter.RecordsRecyclerGridAdapter;
+import com.zou.screenrecorder.adapter.RecordsRecyclerListAdapter;
 import com.zou.screenrecorder.bean.RecordSourceBean;
 import com.zou.screenrecorder.utils.Constant;
 import com.zou.screenrecorder.utils.Tools;
@@ -52,20 +53,23 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private static final String TAG = "MainActivity";
     private Button btn_start;
     private RecyclerView recycler_records;
-    private RecordsRecyclerAdapter adapter;
+    private RecordsRecyclerGridAdapter grid_adapter;
+    private RecordsRecyclerListAdapter list_adapter;
     private ArrayList<RecordSourceBean> recordSourceBeans;
     private Toolbar toolbar;
     private DrawerLayout drawer;
     private ActionBarDrawerToggle toggle;
-    private MenuItem menuItemShare,menuItemDelete;
+    private MenuItem menuItemShare,menuItemDelete,menuItemDisplay;
     private AlertDialog alertDialog;
     private ImageView iv_bg_drawer;
-
+    private SharedPreferences sharedPreferences;
+    private boolean list_style;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         PreferenceManager.setDefaultValues(this, R.xml.preferences_settings, false);
+        sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         MPermissions.requestPermissions(MainActivity.this, 3, Manifest.permission.READ_EXTERNAL_STORAGE);
     }
 
@@ -128,6 +132,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
 
     private void initData() {
+        list_style = sharedPreferences.getBoolean(Constant.KEY_PREFERENCE_LIST_STYLE,false);
         getRecordSourceBeans();
     }
 
@@ -150,7 +155,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 String string = file.list()[i];
                 String recordPath = recordDirectory+string;
                 String imagePath = imageDirectory+string.replace(".mp4",".png");
-                recordSourceBeans.add(0,new RecordSourceBean(recordPath,imagePath,i));
+                String fileSize = Tools.calculateFileSize(recordPath);
+                recordSourceBeans.add(0,new RecordSourceBean(recordPath,imagePath,i,string,fileSize));
             }
         }
 
@@ -203,21 +209,38 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 //                Log.i(TAG,"onDrawerStateChanged");
             }
         });
+        recycler_records = findViewById(R.id.recycler_records);
+        initRecycler();
+    }
 
-        adapter = new RecordsRecyclerAdapter(recordSourceBeans,this);
-        recycler_records =  findViewById(R.id.recycler_records);
-        GridLayoutManager mgr=new GridLayoutManager(this,2);
-        recycler_records.setLayoutManager(mgr);
-        recycler_records.setAdapter(adapter);
-        recycler_records.setItemAnimator(new DefaultItemAnimator(){
+    private void initRecycler() {
+        if(list_style){
+            list_adapter = new RecordsRecyclerListAdapter(recordSourceBeans,this);
+            LinearLayoutManager mgr = new LinearLayoutManager(this);
+            recycler_records.setLayoutManager(mgr);
+            recycler_records.setAdapter(list_adapter);
+            recycler_records.setItemAnimator(new DefaultItemAnimator(){
+                @Override
+                public void onRemoveStarting(RecyclerView.ViewHolder item) {
+                    list_adapter.notifyDataSetChanged();
+                    super.onRemoveStarting(item);
+                }
+            });
+        }else {
+            grid_adapter = new RecordsRecyclerGridAdapter(recordSourceBeans, this);
+            GridLayoutManager mgr = new GridLayoutManager(this, 2);
+            recycler_records.setLayoutManager(mgr);
+            recycler_records.setAdapter(grid_adapter);
+            recycler_records.setItemAnimator(new DefaultItemAnimator() {
 
-            @Override
-            public void onRemoveStarting(RecyclerView.ViewHolder item) {
-                //TODO 移除的动画仍然不完善
-                adapter.notifyDataSetChanged();
-                super.onRemoveStarting(item);
-            }
-        });
+                @Override
+                public void onRemoveStarting(RecyclerView.ViewHolder item) {
+                    //TODO 移除的动画仍然不完善
+                    grid_adapter.notifyDataSetChanged();
+                    super.onRemoveStarting(item);
+                }
+            });
+        }
     }
 
     private void setListener() {
@@ -232,25 +255,44 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 }
             }
         });
-        adapter.setOnItemClickLitener(new RecordsRecyclerAdapter.OnItemClickLitener() {
-            @Override
-            public void onItemClick(View view, int position) {
-                Intent intent = new Intent(MainActivity.this,RecordActivity.class);
-                intent.putExtra(Constant.INTENT_RECORD_URI,recordSourceBeans.get(position).getRecordFilePath());
-                startActivity(intent);
-            }
 
-            @Override
-            public void onItemLongClick(View view, int position) {
-                //进入编辑模式
-                editToolBar();
-            }
-        });
+        if(list_style){
+            list_adapter.setOnItemClickLitener(new RecordsRecyclerListAdapter.OnItemClickLitener() {
+                @Override
+                public void onItemClick(View view, int position) {
+                    Intent intent = new Intent(MainActivity.this,RecordActivity.class);
+                    intent.putExtra(Constant.INTENT_RECORD_URI,recordSourceBeans.get(position).getRecordFilePath());
+                    startActivity(intent);
+                }
+
+                @Override
+                public void onItemLongClick(View view, int position) {
+                    //进入编辑模式
+                    editToolBar();
+                }
+            });
+        }else {
+            grid_adapter.setOnItemClickLitener(new RecordsRecyclerGridAdapter.OnItemClickLitener() {
+                @Override
+                public void onItemClick(View view, int position) {
+                    Intent intent = new Intent(MainActivity.this, RecordActivity.class);
+                    intent.putExtra(Constant.INTENT_RECORD_URI, recordSourceBeans.get(position).getRecordFilePath());
+                    startActivity(intent);
+                }
+
+                @Override
+                public void onItemLongClick(View view, int position) {
+                    //进入编辑模式
+                    editToolBar();
+                }
+            });
+        }
+
     }
 
     private void refresh(){
         getRecordSourceBeans();
-        adapter.notifyDataSetChanged();
+        grid_adapter.notifyDataSetChanged();
     }
     /**
      * ToolBar进入编辑模式
@@ -273,8 +315,15 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         getMenuInflater().inflate(R.menu.menu_main, menu);
         menuItemShare = menu.findItem(R.id.action_share);
         menuItemDelete = menu.findItem(R.id.action_delete);
+        menuItemDisplay=menu.findItem(R.id.action_display_style);
         menuItemShare.setVisible(false);
         menuItemDelete.setVisible(false);
+        menuItemDisplay.setVisible(true);
+        if(list_style){
+            menuItemDisplay.setIcon(R.drawable.ic_action_item_style_grid);
+        }else{
+            menuItemDisplay.setIcon(R.drawable.ic_action_item_style_list);
+        }
         return true;
     }
 
@@ -282,6 +331,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         if(menuItemShare!=null&&menuItemDelete!=null){
             menuItemShare.setVisible(false);
             menuItemDelete.setVisible(false);
+            menuItemDisplay.setVisible(true);
         }
     }
 
@@ -289,6 +339,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         if(menuItemShare!=null&&menuItemDelete!=null){
             menuItemShare.setVisible(true);
             menuItemDelete.setVisible(true);
+            menuItemDisplay.setVisible(false);
         }
     }
 
@@ -300,15 +351,25 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
      * @param item
      * @return
      */
+    @SuppressLint("CommitPrefEdits")
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        boolean[] isChecked = adapter.getIsChecked();
+        boolean[] isChecked;
+        if(!list_style){
+            isChecked = grid_adapter.getIsChecked();
+        }else{
+            isChecked = list_adapter.getIsChecked();
+        }
         int id= item.getItemId();
         switch (id){
             case R.id.action_share:
                 //分享
                 exitEditToolBar();
-                adapter.exitEdit();
+                if(!list_style) {
+                    grid_adapter.exitEditTmp();
+                }else{
+                    list_adapter.exitEditTmp();
+                }
                 ArrayList<String> pathList = new ArrayList<>();
                 for(int i=0;i<recordSourceBeans.size();i++){
                     if(isChecked[i]){
@@ -327,7 +388,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 //删除
                 //退出编辑模式
                 exitEditToolBar();
-                adapter.exitEditTmp();
+                if(!list_style) {
+                    grid_adapter.exitEditTmp();
+                }else{
+                    list_adapter.exitEditTmp();
+                }
                 //删除文件
                 for(int i=0;i<recordSourceBeans.size();i++){
                     RecordSourceBean recordSourceBean = recordSourceBeans.get(i);
@@ -346,22 +411,23 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                         image.delete();
                         record.delete();
                         iterator.remove();
-                        adapter.notifyItemRemoved(recordSourceBean.getSourcePosition());
+                        grid_adapter.notifyItemRemoved(recordSourceBean.getSourcePosition());
                     }
                 }
                 break;
 
             case R.id.action_display_style:
                 //切换形态
-                String title = item.getTitle().toString();
-                if(getResources().getString(R.string.style_grid).equals(title)){
-                    item.setTitle(R.string.style_list);
-                    item.setIcon(R.drawable.ic_action_item_style_list);
-                }else if(getResources().getString(R.string.style_list).equals(title)){
-                    item.setTitle(R.string.style_grid);
-                    item.setIcon(R.drawable.ic_action_item_style_grid);
+                if(list_style){
+                    menuItemDisplay.setIcon(R.drawable.ic_action_item_style_list);
+                    sharedPreferences.edit().putBoolean(Constant.KEY_PREFERENCE_LIST_STYLE,false).apply();
+                }else{
+                    menuItemDisplay.setIcon(R.drawable.ic_action_item_style_grid);
+                    sharedPreferences.edit().putBoolean(Constant.KEY_PREFERENCE_LIST_STYLE,true).apply();
                 }
-
+                list_style = !list_style;
+                initRecycler();
+                setListener();
                 break;
         }
         return super.onOptionsItemSelected(item);
@@ -388,8 +454,12 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     @Override
     public void onBackPressed() {
         //退出编辑模式
-        if(adapter!=null&&adapter.isEdit()){
-            adapter.exitEdit();
+        if(!list_style&&grid_adapter !=null&& grid_adapter.isEdit()){
+            grid_adapter.exitEdit();
+            exitEditToolBar();
+            return;
+        }else if(list_style&&list_adapter!=null&&list_adapter.isEdit()){
+            list_adapter.exitEdit();
             exitEditToolBar();
             return;
         }

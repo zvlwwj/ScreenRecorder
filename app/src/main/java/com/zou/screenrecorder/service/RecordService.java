@@ -181,7 +181,7 @@ public class RecordService extends Service {
      */
     private void initRecorder() {
         try {
-        DateFormat dateFormat = new SimpleDateFormat("MMddyyyyHHmmss");
+        DateFormat dateFormat = new SimpleDateFormat("yyyyMMddHHmm");
         fileName = dateFormat.format(new java.util.Date());
         mediaRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
         mediaRecorder.setVideoSource(MediaRecorder.VideoSource.SURFACE);

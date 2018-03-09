@@ -27,10 +27,8 @@ import com.zou.screenrecorder.utils.Tools;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.lang.ref.SoftReference;
 import java.util.ArrayList;
 import java.util.Arrays;
 
@@ -46,7 +44,7 @@ import rx.schedulers.Schedulers;
 
 //TODO 要考虑到图片获取不到的情况（应用缓存文件被删）
 @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
-public class RecordsRecyclerAdapter extends RecyclerView.Adapter<RecordsRecyclerAdapter.ViewHolder> {
+public class RecordsRecyclerGridAdapter extends RecyclerView.Adapter<RecordsRecyclerGridAdapter.ViewHolder> {
     private static final String TAG = "RecordsRecyclerAdapter";
     private ArrayList<RecordSourceBean> recordSourceBeans;
     private Context context;
@@ -56,7 +54,7 @@ public class RecordsRecyclerAdapter extends RecyclerView.Adapter<RecordsRecycler
     //储存是否被选中的boolean数组
     private boolean[] isChecked;
     private Handler handler;
-    public RecordsRecyclerAdapter(ArrayList<RecordSourceBean> recordSourceBeans,Context context){
+    public RecordsRecyclerGridAdapter(ArrayList<RecordSourceBean> recordSourceBeans, Context context){
         this.recordSourceBeans = recordSourceBeans;
         this.context = context;
         registerAdapterDataObserver(observer);
@@ -95,7 +93,7 @@ public class RecordsRecyclerAdapter extends RecyclerView.Adapter<RecordsRecycler
 
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        View v = View.inflate(parent.getContext(), R.layout.item_records,null);
+        View v = View.inflate(parent.getContext(), R.layout.item_records_grid,null);
         ViewHolder viewHolder = new ViewHolder(v);
         return viewHolder;
     }
@@ -109,7 +107,7 @@ public class RecordsRecyclerAdapter extends RecyclerView.Adapter<RecordsRecycler
 //            holder.iv_item_records.setScaleY(1f);
 //        }
         //添加事件监听
-        if(mOnItemClickLitener!=null){
+
             holder.iv_item_records.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
@@ -130,7 +128,9 @@ public class RecordsRecyclerAdapter extends RecyclerView.Adapter<RecordsRecycler
                         }
                     }else {
                         //否则，进入观看录像界面
-                        mOnItemClickLitener.onItemClick(holder.iv_item_records, position);
+                        if(mOnItemClickLitener!=null) {
+                            mOnItemClickLitener.onItemClick(holder.iv_item_records, position);
+                        }
                     }
                 }
             });
@@ -139,7 +139,9 @@ public class RecordsRecyclerAdapter extends RecyclerView.Adapter<RecordsRecycler
                 @Override
                 public boolean onLongClick(View v) {
                     if(!isEdit) {
-                        mOnItemClickLitener.onItemLongClick(holder.iv_item_records, position);
+                        if(mOnItemClickLitener!=null) {
+                            mOnItemClickLitener.onItemLongClick(holder.iv_item_records, position);
+                        }
                         isEdit = true;
                         isChecked[position] = true;
                         notifyDataSetChanged();
@@ -154,7 +156,7 @@ public class RecordsRecyclerAdapter extends RecyclerView.Adapter<RecordsRecycler
                     return true;
                 }
             });
-        }
+
     }
 
     @Override
@@ -229,8 +231,9 @@ public class RecordsRecyclerAdapter extends RecyclerView.Adapter<RecordsRecycler
                                     FileOutputStream fileOutputStream = null;
                                     try {
                                         fileOutputStream = new FileOutputStream(recordSourceBean.getImageFilePath());
-                                    } catch (FileNotFoundException e) {
-                                        e.printStackTrace();
+                                    } catch (Throwable t) {
+                                        Observable.error(t);
+                                        return;
                                     }
                                     Bitmap bm = ThumbnailUtils.createVideoThumbnail(recordSourceBean.getRecordFilePath(), MediaStore.Images.Thumbnails.FULL_SCREEN_KIND);
                                     bm = ThumbnailUtils.extractThumbnail(bm, Tools.getScreenWidth(context)/2, Tools.getScreenHeight(context)/2);
@@ -261,12 +264,9 @@ public class RecordsRecyclerAdapter extends RecyclerView.Adapter<RecordsRecycler
                         return duartion;
                     }
                 })
-//                .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Action1<String>() {
                     @Override
                     public void call(String duartion) {
-
-        //                holder.iv_item_records.setImageBitmap();
                         holder.tv_item_duration.setText(duartion);
                     }
                 }, new Action1<Throwable>() {
