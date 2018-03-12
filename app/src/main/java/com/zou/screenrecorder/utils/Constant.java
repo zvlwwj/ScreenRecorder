@@ -6,6 +6,7 @@ package com.zou.screenrecorder.utils;
 
 public class Constant {
     public static final String INTENT_RECORD_URI = "intent_record_uri";
+    public static final String KEY_FIRST_IN_APP = "key_first_in_app";
 
     public static String EMAIL = "mailto:zoujingyi1992@gmail.com";
 

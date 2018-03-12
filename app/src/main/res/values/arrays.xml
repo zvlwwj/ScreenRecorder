@@ -1,13 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string-array name="settings_list_preference_video_resolution_entries">
-        <item>屏幕分辨率2倍</item>
         <item>和屏幕分辨率相同</item>
         <item>屏幕分辨率1/2</item>
         <item>屏幕分辨率1/4</item>
     </string-array>
     <string-array name="settings_list_preference_video_resolution_values" >
-        <item>200</item>
         <item>100</item>
         <item>50</item>
         <item>25</item>

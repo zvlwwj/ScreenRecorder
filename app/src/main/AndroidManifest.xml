@@ -14,13 +14,15 @@
         android:supportsRtl="true"
         android:name=".application.ScreenRecordApplication"
         android:theme="@style/Theme.AppCompat.NoActionBar">
-        <activity android:name=".activity.MainActivity">
+        <activity android:name=".activity.GuideActivity"
+            android:screenOrientation="portrait">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity android:name=".activity.MainActivity"/>
         <service android:name=".service.RecordService"
             android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE">
             <intent-filter>
@@ -39,6 +41,7 @@
         <activity android:name=".activity.AboutActivity"
             android:label="@string/nav_about"
             android:theme="@style/Theme.AppCompat" />
+
     </application>
 
 </manifest>

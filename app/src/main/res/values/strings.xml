@@ -110,5 +110,7 @@
     <string name="choose_style">切换形态</string>
     <string name="style_grid">style_grid</string>
     <string name="style_list">style_list</string>
+    <string name="settings_list_preference_video_quality">录屏画质</string>
+    <string name="in_app">开始体验</string>
 
 </resources>

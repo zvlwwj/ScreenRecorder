@@ -247,6 +247,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         btn_start.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M&&!Settings.canDrawOverlays(getApplicationContext())) {
                     showDialogForFloatView();
                 }else {
@@ -411,7 +412,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                         image.delete();
                         record.delete();
                         iterator.remove();
-                        grid_adapter.notifyItemRemoved(recordSourceBean.getSourcePosition());
+                        if(!list_style) {
+                            grid_adapter.notifyItemRemoved(recordSourceBean.getSourcePosition());
+                        }else {
+                            list_adapter.notifyItemRemoved(recordSourceBean.getSourcePosition());
+                        }
                     }
                 }
                 break;

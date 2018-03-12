@@ -63,4 +63,8 @@ dependencies {
     compile 'org.greenrobot:eventbus:3.0.0'
     compile 'com.android.support:preference-v7:26.1.0'
     testCompile 'junit:junit:4.12'
+
+    //引导页控件
+    compile 'me.relex:circleindicator:1.2.2@aar'
+
 }
