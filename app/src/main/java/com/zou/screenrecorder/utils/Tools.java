@@ -29,7 +29,7 @@ public class Tools {
      */
     public static String getSaveRecordDirectory(){
         if (Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
-            String rootDir = Environment.getExternalStorageDirectory().getAbsolutePath() + "/" + "ScreenRecord" + "/";
+            String rootDir = Environment.getExternalStorageDirectory().getAbsolutePath() + "/" + "SharinganScreenRecord" + "/";
 
             File file = new File(rootDir);
             if (!file.exists()) {
@@ -50,7 +50,7 @@ public class Tools {
      * @return
      */
     public static String getSaveImageDirectory(Context context){
-        String path = context.getExternalCacheDir()+"/"+"Images"+"/";
+        String path = context.getExternalCacheDir()+"/"+"SharinganImages"+"/";
         File f = new File(path);
         if(!f.exists()) {
             if (!f.mkdirs()) {

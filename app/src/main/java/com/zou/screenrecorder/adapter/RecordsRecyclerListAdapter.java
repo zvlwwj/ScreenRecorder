@@ -234,16 +234,18 @@ public class RecordsRecyclerListAdapter extends RecyclerView.Adapter<RecordsRecy
                                     }
                                     Bitmap bm = ThumbnailUtils.createVideoThumbnail(recordSourceBean.getRecordFilePath(), MediaStore.Images.Thumbnails.FULL_SCREEN_KIND);
                                     bm = ThumbnailUtils.extractThumbnail(bm, Tools.getScreenWidth(context)/2, Tools.getScreenHeight(context)/2);
-                                    bm.compress(Bitmap.CompressFormat.PNG,100,fileOutputStream);
-                                    final ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-                                    bm.compress(Bitmap.CompressFormat.PNG,100,byteArrayOutputStream);
-                                    handler.post(new Runnable() {
-                                        @Override
-                                        public void run() {
-                                            holder.iv_item_records.clearAnimation();
-                                            Glide.with(context).load(byteArrayOutputStream.toByteArray()).into(holder.iv_item_records);
-                                        }
-                                    });
+                                    if(bm!=null) {
+                                        bm.compress(Bitmap.CompressFormat.PNG, 100, fileOutputStream);
+                                        final ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+                                        bm.compress(Bitmap.CompressFormat.PNG, 100, byteArrayOutputStream);
+                                        handler.post(new Runnable() {
+                                            @Override
+                                            public void run() {
+                                                holder.iv_item_records.clearAnimation();
+                                                Glide.with(context).load(byteArrayOutputStream.toByteArray()).into(holder.iv_item_records);
+                                            }
+                                        });
+                                    }
                                 }
                             }.start();
                         }
