@@ -1050,7 +1050,6 @@ public class IjkVideoView extends FrameLayout implements CustomMediaController.M
                     ijkMediaPlayer.native_setLogLevel(IjkMediaPlayer.IJK_LOG_DEBUG);
 
                     if (mSettings.getUsingMediaCodec()) {
-                        Toast.makeText(getContext(),"useing hard encode", Toast.LENGTH_SHORT).show();
                         ijkMediaPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_PLAYER, "mediacodec", 1);
                         if (mSettings.getUsingMediaCodecAutoRotate()) {
                             ijkMediaPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_PLAYER, "mediacodec-auto-rotate", 1);
@@ -1063,7 +1062,6 @@ public class IjkVideoView extends FrameLayout implements CustomMediaController.M
                             ijkMediaPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_PLAYER, "mediacodec-handle-resolution-change", 0);
                         }
                     } else {
-                        Toast.makeText(getContext(),"useing soft encode", Toast.LENGTH_SHORT).show();
                         ijkMediaPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_PLAYER, "mediacodec", 0);
                     }
 

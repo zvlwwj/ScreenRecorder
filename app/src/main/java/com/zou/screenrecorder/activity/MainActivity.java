@@ -120,7 +120,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                     .setPositiveButton(getString(R.string.dialog_ok), new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
-                            alertDialog.dismiss();
                             requestFloatViewPermission();
                         }
                     })
@@ -474,7 +473,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 .setPositiveButton(getString(R.string.dialog_exit_ok), new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        alertDialog.dismiss();
                         MainActivity.super.onBackPressed();
                         System.exit(0);
                     }
