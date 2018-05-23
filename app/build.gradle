@@ -9,10 +9,10 @@ android {
     }
     defaultConfig {
         applicationId "com.zou.screenrecorder"
-        minSdkVersion 19
+        minSdkVersion 21
         targetSdkVersion 26
-        versionCode 1
-        versionName "1.0"
+        versionCode 2
+        versionName "1.1"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         flavorDimensions "versionCode"
         javaCompileOptions {

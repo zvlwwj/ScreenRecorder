@@ -1,9 +1,16 @@
 package com.zou.screenrecorder.service;
 
+import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.app.Service;
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.PixelFormat;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
+import android.graphics.drawable.Icon;
 import android.hardware.display.DisplayManager;
 import android.hardware.display.VirtualDisplay;
 import android.media.Image;
@@ -18,8 +25,10 @@ import android.os.IBinder;
 import android.os.SystemClock;
 import android.preference.PreferenceManager;
 import android.support.annotation.RequiresApi;
+import android.support.v4.content.ContextCompat;
 import android.util.Log;
 
+import com.zou.screenrecorder.R;
 import com.zou.screenrecorder.utils.Tools;
 
 import java.io.File;
@@ -65,17 +74,39 @@ public class RecordService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
-        HandlerThread serviceThread = new HandlerThread("service_thread",
-                android.os.Process.THREAD_PRIORITY_BACKGROUND);
-        serviceThread.start();
+        startForeground(1,getNotification());
         running = false;
         mediaRecorder = new MediaRecorder();
         handler = new Handler();
-
         resolution_rate = Integer.parseInt(PreferenceManager.getDefaultSharedPreferences(this).getString("sync_frequency_resolution","100"));
         bit_rate = Integer.parseInt(PreferenceManager.getDefaultSharedPreferences(this).getString("sync_frequency_bit_rate","24"));
         video_frame = Integer.parseInt(PreferenceManager.getDefaultSharedPreferences(this).getString("sync_frequency_frame","30"));
         Log.i(TAG,"分辨率 ： "+resolution_rate +" 码率 ： "+bit_rate + "Mbps 帧率 ; "+video_frame + "FPS");
+    }
+
+    private Notification getNotification() {
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NotificationChannel channel = new NotificationChannel("channel_id", "name", NotificationManager.IMPORTANCE_DEFAULT);
+
+            NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+
+            if (manager != null) {
+                manager.createNotificationChannel(channel);
+            }
+            Drawable drawable = ContextCompat.getDrawable(this, R.mipmap.ic_launcher_round);
+            Bitmap bitmap = ((BitmapDrawable) drawable).getBitmap();
+
+            Notification notification = new Notification.Builder(this, "channel_id")
+                    .setOngoing(true)
+                    .setLargeIcon(bitmap)
+                    .setSmallIcon(R.drawable.ic_notify_small_icon)
+                    .build();
+            return notification;
+        }else{
+            Notification notification = new Notification(R.drawable.ic_notify_small_icon,"",0);
+            startForeground(1, notification);
+            return notification;
+        }
     }
 
     @Override

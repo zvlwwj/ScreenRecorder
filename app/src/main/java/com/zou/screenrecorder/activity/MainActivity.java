@@ -1,12 +1,16 @@
 package com.zou.screenrecorder.activity;
 import android.Manifest;
 import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.HandlerThread;
+import android.os.Message;
 import android.preference.PreferenceManager;
 import android.provider.Settings;
 import android.support.annotation.NonNull;
@@ -47,7 +51,6 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Iterator;
 
-@RequiresApi(api = Build.VERSION_CODES.M)
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener{
     private static final int REQUEST_CODE_FLOAT_PERMISSION = 100;
     private static final String TAG = "MainActivity";
@@ -81,7 +84,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         initData();
         initView();
         setListener();
-        showDialogForFloatView();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            showDialogForFloatView();
+        }
     }
 
     /**
@@ -112,21 +117,22 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     /**
      * 弹出需要悬浮窗权限的dialog
      */
+    @RequiresApi(api = Build.VERSION_CODES.M)
     private void showDialogForFloatView() {
-        if(!Settings.canDrawOverlays(getApplicationContext())) {
-            alertDialog = new AlertDialog.Builder(MainActivity.this)
-                    .setTitle(getString(R.string.dialog_request_float_title))
-                    .setMessage(getString(R.string.dialog_request_float_content))
-                    .setPositiveButton(getString(R.string.dialog_ok), new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            requestFloatViewPermission();
-                        }
-                    })
-                    .setNegativeButton(getString(R.string.dialog_cancel), null)
-                    .setCancelable(false)
-                    .show();
-        }
+            if(!Settings.canDrawOverlays(getApplicationContext())) {
+                alertDialog = new AlertDialog.Builder(MainActivity.this)
+                        .setTitle(getString(R.string.dialog_request_float_title))
+                        .setMessage(getString(R.string.dialog_request_float_content))
+                        .setPositiveButton(getString(R.string.dialog_ok), new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                requestFloatViewPermission();
+                            }
+                        })
+                        .setNegativeButton(getString(R.string.dialog_cancel), null)
+                        .setCancelable(false)
+                        .show();
+            }
     }
 
 
@@ -246,10 +252,14 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         btn_start.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M&&!Settings.canDrawOverlays(getApplicationContext())) {
-                    showDialogForFloatView();
-                }else {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                    if (!Settings.canDrawOverlays(getApplicationContext())) {
+                        showDialogForFloatView();
+                    } else {
+                        startActivity(new Intent(MainActivity.this, CapturePermissionRequestActivity.class));
+                        moveTaskToBack(true);
+                    }
+                }else{
                     startActivity(new Intent(MainActivity.this, CapturePermissionRequestActivity.class));
                     moveTaskToBack(true);
                 }
@@ -440,13 +450,12 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     /**
      * 请求悬浮窗的权限
      */
+    @RequiresApi(api = Build.VERSION_CODES.M)
     private void requestFloatViewPermission() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            if(!Settings.canDrawOverlays(getApplicationContext())) {
-                Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION);
-                intent.setData(Uri.parse("package:" + getPackageName()));
-                startActivityForResult(intent, REQUEST_CODE_FLOAT_PERMISSION);
-            }
+        if(!Settings.canDrawOverlays(getApplicationContext())) {
+            Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION);
+            intent.setData(Uri.parse("package:" + getPackageName()));
+            startActivityForResult(intent, REQUEST_CODE_FLOAT_PERMISSION);
         }
     }
 

@@ -43,7 +43,6 @@ import rx.schedulers.Schedulers;
  */
 
 //TODO 要考虑到图片获取不到的情况（应用缓存文件被删）
-@RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
 public class RecordsRecyclerGridAdapter extends RecyclerView.Adapter<RecordsRecyclerGridAdapter.ViewHolder> {
     private static final String TAG = "RecordsRecyclerAdapter";
     private ArrayList<RecordSourceBean> recordSourceBeans;
