@@ -113,5 +113,6 @@
     <string name="settings_list_preference_video_quality">录屏画质</string>
     <string name="in_app">开始体验</string>
     <string name="notify_content">写轮眼录屏</string>
+    <string name="launcher_step1_msg">简单好用的屏幕录制软件</string>
 
 </resources>
